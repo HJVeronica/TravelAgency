@@ -10,12 +10,13 @@ import java.awt.event.MouseMotionAdapter;
 import java.sql.SQLException;
 import java.util.Vector;
 
-import javax.swing.DefaultCellEditor;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -41,6 +42,7 @@ class Airline extends JPanel implements ActionListener{
 	private JLabel lblPhone;
 	private JLabel lblAddress;
 	private JLabel location;
+	private JLabel lblCountry;
 	
 	//Font, JScrollPane, JTable
 	private Font font;
@@ -52,6 +54,7 @@ class Airline extends JPanel implements ActionListener{
 	private JTextField tfPhone;
 	private JTextField tfAddress;
 	private JTextField tfSearch;
+	private JTextField tfCountry;
 	
 	//JComboBox
 	private JComboBox cbSearch;
@@ -82,41 +85,50 @@ class Airline extends JPanel implements ActionListener{
 	/** 등록/삭제 버튼 및 등록 부분 UI */
 	private void Enroll_init(){
 		//Label에 사용할 폰트
-		font = new Font("",Font.BOLD,15);
+		font = new Font("",Font.BOLD,12);
 		
 		//등록 부분 양식
-		lblName = new JLabel("이        름 : ");
-		lblName.setBounds(80,30,75,30);
+		lblName = new JLabel("* 이        름 : ");
+		lblName.setBounds(80,30,75,20);
 		lblName.setFont(font);
 		add(lblName);
 		
 		tfName = new JTextField();
-		tfName.setBounds(165, 30, 200, 30);
+		tfName.setBounds(155, 30, 200, 20);
 		add(tfName);
 		  
-		lblPhone = new JLabel("전화번호 : ");
-		lblPhone.setBounds(80,70,75,30);
+		lblPhone = new JLabel("* 전화번호 : ");
+		lblPhone.setBounds(80,65,75,20);
 		lblPhone.setFont(font);
 		add(lblPhone);
 		
 		tfPhone = new JTextField();
-		tfPhone.setBounds(165, 70, 200, 30);
+		tfPhone.setBounds(155,65, 200, 20);
 		add(tfPhone);
 		
-		lblAddress = new JLabel("주        소 : ");
-		lblAddress.setBounds(80,110,75,30);
+		lblCountry = new JLabel("* 국        가 : ");
+		lblCountry.setBounds(80,100,75,20);
+		lblCountry.setFont(font);
+		add(lblCountry);
+		
+		tfCountry = new JTextField();
+		tfCountry.setBounds(155, 100, 150, 20);
+		add(tfCountry);
+		
+		lblAddress = new JLabel("* 주        소 : ");
+		lblAddress.setBounds(80,135,75,20);
 		lblAddress.setFont(font);
 		add(lblAddress);
 		
 		tfAddress = new JTextField();
-		tfAddress.setBounds(165, 110, 350, 30);
+		tfAddress.setBounds(155, 135, 350, 20);
 		add(tfAddress);			
 		
 		//ComboBox: Airline Names (Statistics)			
 		cbAirlines = new JComboBox();
 		cbAirlines.addItem("Names");
 		cbAirlines.addActionListener(this);
-		cbAirlines.setBounds(65, 160, 100, 30);
+		cbAirlines.setBounds(75, 170, 100, 20);
 		add(cbAirlines);
 		
 		//등록 버튼: 테이블 새로 한 줄 추가
@@ -166,7 +178,7 @@ class Airline extends JPanel implements ActionListener{
 		tableCellCenter(airlineTable);
 		setColumnSize(airlineTable);
 		scroll = new JScrollPane(airlineTable);
-		scroll.setBounds(60, 200, 850, 360);
+		scroll.setBounds(70, 200, 850, 360);
 		add(scroll);
 		
 		//CheckBox for the Table

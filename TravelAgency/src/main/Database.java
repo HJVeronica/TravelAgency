@@ -11,7 +11,7 @@ import java.util.Vector;
  * Connect to TravelAgency Database 
  * Execute Query
  * 
- * @version 1.00 11/26/15
+ * @version 1.01 11/29/15
  * @author Hyunjeong Shim, 김상완, 유란영
  */
 
@@ -51,9 +51,6 @@ public class Database{
 	}
 	
 	public Vector<Vector> Table_Initialize(int TabNum, Vector<Vector> data) throws SQLException{
-		/*sql = "Select count(*) from airline";
-		ExecuteQuery(sql,1);
-		int tuples = rs.getInt(1);*/
 		Vector<String> in;
 		
 		switch(TabNum){
@@ -82,9 +79,6 @@ public class Database{
 			case 5: 	//Reservation Table Initialize
 				break;
 		}
-		
-		
-		
 		
 		return data;
 	}

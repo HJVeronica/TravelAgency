@@ -8,7 +8,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
+import java.sql.SQLException;
+import java.util.Vector;
 
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -16,6 +19,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -24,6 +28,8 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+
+import main.Database;
 
 /** Customer UI & Functions */
 public class Customer extends JPanel implements ActionListener{
@@ -39,8 +45,6 @@ public class Customer extends JPanel implements ActionListener{
 	private JLabel lblMembership;
 	private JLabel lblPayment;
 	private JLabel lblSeat;
-	private JLabel lblDash1;
-	private JLabel lblDash2;
 	private JLabel location;
 	
 	private Font font;
@@ -48,24 +52,40 @@ public class Customer extends JPanel implements ActionListener{
 	private JTable customerTable;
 	
 	private JTextField tfName;
-	private JTextField tfPhone1;
-	private JTextField tfPhone2;
-	private JTextField tfPhone3;
+	private JTextField tfPhone;
 	private JTextField tfAddress;
 	private JTextField tfSearch;
 	
+	//JRadioButton: Membership
+	ButtonGroup membership;
+	JRadioButton membershipTrue;
+	JRadioButton membershipFalse;
+	
+	//JRadioButton: Seat(Front/Back)
+	ButtonGroup seatFB;
+	JRadioButton seatFront;
+	JRadioButton seatBack;
+	
+	//JRadioButton: Seat(Window/Aisle)
+	ButtonGroup seatWA;
+	JRadioButton seatWindow;
+	JRadioButton seatAisle;
+	
 	private JComboBox cbSearch;
-	private JComboBox cbAirlines;
+	private JComboBox cbCustomer;
 	
-	private JCheckBox chBox;
+	//private JCheckBox chBox;
 	
-	String alColNames[] = {"ch","ID","이름","주소","전화번호"};
-	String alCombo[] = {"ID","이름","주소","전화번호"};
+	//Vector, String
+	Vector<String> csColNames;
+	String csCombo[] = {"ID","이름","주소","전화번호","멤버쉽","결제방법","좌석"};
+	Vector<Vector> data;
 	
-	DefaultTableModel model = null;	
+	Database db;
 	
-	/** Customer Constructor */
-	public Customer(){
+	/** Customer Constructor 
+	 * @throws SQLException */
+	public Customer() throws SQLException{
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
 		
@@ -77,58 +97,95 @@ public class Customer extends JPanel implements ActionListener{
 	/** 등록/삭제 버튼 및 등록 부분 UI */
 	private void Enroll_init(){
 		//Label에 사용할 폰트
-		font = new Font("",Font.BOLD,15);
+		font = new Font("",Font.BOLD,12);
 		
 		//등록 부분 양식
-		lblName = new JLabel("이        름 : ");
-		lblName.setBounds(80,30,75,30);
+		lblName = new JLabel("* 이        름 : ");
+		lblName.setBounds(80,30,75,20);
 		lblName.setFont(font);
 		add(lblName);
 		
 		tfName = new JTextField();
-		tfName.setBounds(165, 30, 200, 30);
+		tfName.setBounds(180, 30, 200, 20);
 		add(tfName);
 		  
-		lblPhone = new JLabel("전화번호 : ");
-		lblPhone.setBounds(80,70,75,30);
+		lblPhone = new JLabel("* 전화번호 : ");
+		lblPhone.setBounds(80,65,75,20);
 		lblPhone.setFont(font);
 		add(lblPhone);
 		
-		tfPhone1 = new JTextField();
-		tfPhone1.setBounds(165, 70, 50, 30);
-		add(tfPhone1);
+		tfPhone = new JTextField();
+		tfPhone.setBounds(180,65, 200, 20);
+		add(tfPhone);
 		
-		lblDash1 = new JLabel(" ─ ");
-		lblDash1.setBounds(220, 70, 20, 30);
-		add(lblDash1);
+		lblMembership = new JLabel("* 멤버십 여부 : ");
+		lblMembership.setBounds(80,100,85,20);
+		lblMembership.setFont(font);
+		add(lblMembership);
 		
-		tfPhone2 = new JTextField();
-		tfPhone2.setBounds(245, 70, 60, 30);
-		add(tfPhone2);
+		//Membership Radio Button
+		membership = new ButtonGroup();
+		membershipTrue = new JRadioButton("보유");
+		membershipFalse = new JRadioButton("미보유");
+		membership.add(membershipTrue);
+		membership.add(membershipFalse);
+		membershipTrue.addActionListener(this);
+		membershipFalse.addActionListener(this);
+		membershipTrue.setBounds(190, 100, 60, 20);
+		membershipTrue.setFont(font);
+		membershipTrue.setBackground(Color.LIGHT_GRAY);
+		membershipFalse.setBounds(270, 100, 70, 20);
+		membershipFalse.setFont(font);
+		membershipFalse.setBackground(Color.LIGHT_GRAY);
+		add(membershipTrue);
+		add(membershipFalse);		
 		
-		lblDash2 = new JLabel(" ─ ");
-		lblDash2.setBounds(310, 70, 20, 30);
-		add(lblDash2);
-		
-		tfPhone3 = new JTextField();
-		tfPhone3.setBounds(335, 70, 60, 30);
-		add(tfPhone3);
-		
-		lblAddress = new JLabel("주        소 : ");
-		lblAddress.setBounds(80,110,75,30);
-		lblAddress.setFont(font);
-		add(lblAddress);
+		lblPayment = new JLabel("  선호 결제방법 : ");
+		lblPayment.setBounds(80,135,100,20);
+		lblPayment.setFont(font);
+		add(lblPayment);
 		
 		tfAddress = new JTextField();
-		tfAddress.setBounds(165, 110, 350, 30);
-		add(tfAddress);			
+		tfAddress.setBounds(180, 135, 350, 20);
+		add(tfAddress);
 		
-		//ComboBox: Airline Names (Statistics)			
-		cbAirlines = new JComboBox();
-		cbAirlines.addItem("Names");
-		cbAirlines.addActionListener(this);
-		cbAirlines.setBounds(65, 160, 100, 30);
-		add(cbAirlines);
+		lblSeat = new JLabel("* 선호 좌석 : ");
+		lblSeat.setBounds(80,170,75,20);
+		lblSeat.setFont(font);
+		add(lblSeat);
+		
+		//Seat Radio Button
+		seatFB = new ButtonGroup();
+		seatFront = new JRadioButton("앞");
+		seatBack = new JRadioButton("뒤");
+		seatFB.add(seatFront);
+		seatFB.add(seatBack);
+		seatFront.addActionListener(this);
+		seatBack.addActionListener(this);
+		seatFront.setBounds(190, 170, 55, 20);
+		seatFront.setFont(font);
+		seatFront.setBackground(Color.LIGHT_GRAY);
+		seatBack.setBounds(240, 170, 55, 20);
+		seatBack.setFont(font);
+		seatBack.setBackground(Color.LIGHT_GRAY);
+		add(seatFront);
+		add(seatBack);
+		
+		seatWA = new ButtonGroup();
+		seatWindow = new JRadioButton("창가");
+		seatAisle = new JRadioButton("복도");
+		seatWA.add(seatWindow);
+		seatWA.add(seatAisle);
+		seatWindow.addActionListener(this);
+		seatAisle.addActionListener(this);
+		seatWindow.setBounds(340, 170, 55, 20);
+		seatWindow.setFont(font);
+		seatWindow.setBackground(Color.LIGHT_GRAY);
+		seatAisle.setBounds(400, 170, 55, 20);
+		seatAisle.setFont(font);
+		seatAisle.setBackground(Color.LIGHT_GRAY);
+		add(seatWindow);
+		add(seatAisle);
 		
 		//등록 버튼: 테이블 새로 한 줄 추가
 		btnCsEnroll = new JButton("등록");
@@ -151,18 +208,27 @@ public class Customer extends JPanel implements ActionListener{
 		add(btnCsDelete);
 	}
 	
-	/** 테이블 및 검색 부분 UI */
-	private void Table_init(){
-		//DefaultTableModel
-		model = new DefaultTableModel(alColNames, 0);
-		customerTable = new JTable(model);
+	/** 테이블 및 검색 부분 UI 
+	 * @throws SQLException */
+	private void Table_init() throws SQLException{
+		//Connect to DB & Get Data from Airline Table
+		db = new Database();
+		data = new Vector<>();
+		data = db.Table_Initialize(CLASS_ID, data);
 		
-		//Insert Sample Data
-		model.addRow(new Object[]{"","A01","Delta","주소1","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A02","Cathay Pacific","주소2","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A03","Air Canada","주소3","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A04","Korean Air","주소4","+82-10-3456-7890"});
-		model.addRow(new Object[]{"","A05","EastJet","주소5","+1-12-3456-7890"});
+		//Initialize Column Names
+		csColNames = new Vector<>();
+		//alColNames.add("ch");
+		csColNames.add("ID");
+		csColNames.add("이름");
+		csColNames.add("전화번호");
+		csColNames.add("주소");
+		csColNames.add("멤버쉽");
+		csColNames.add("결제방법");
+		csColNames.add("좌석");
+		
+		//Create a Table with Data and Column Names
+		customerTable = new JTable(data,csColNames);	
 		
 		//Table Settings
 		customerTable.addMouseListener(new JTableMouseListener());
@@ -170,17 +236,17 @@ public class Customer extends JPanel implements ActionListener{
 		tableCellCenter(customerTable);
 		setColumnSize(customerTable);
 		scroll = new JScrollPane(customerTable);
-		scroll.setBounds(60, 200, 850, 360);
+		scroll.setBounds(70, 200, 850, 360);
 		add(scroll);
 		
 		//CheckBox for the Table
-		chBox = new JCheckBox();
+		/*chBox = new JCheckBox();
 		chBox.setHorizontalAlignment(JLabel.CENTER);
 		customerTable.getColumn("ch").setCellEditor(new DefaultCellEditor(chBox));
-		add(chBox);
+		add(chBox);*/
 		
 		//ComboBox: Search			
-		cbSearch = new JComboBox(alCombo);
+		cbSearch = new JComboBox(csCombo);
 		cbSearch.addActionListener(this);
 		cbSearch.setBounds(280, 580, 80, 30);
 		add(cbSearch);
@@ -240,7 +306,7 @@ public class Customer extends JPanel implements ActionListener{
 	}
 	
 	
-	DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
+	/*DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
 		public Component getTableCellRendererComponent
 		(JTable t, Object value, boolean isSelected, boolean hasFocus, int row, int column){
 			chBox.setSelected(((Boolean)value).booleanValue());
@@ -248,7 +314,7 @@ public class Customer extends JPanel implements ActionListener{
 			
 			return chBox;				
 		}
-	};
+	};*/
 	
 	/** 테이블 내용 가운데 정렬 */
 	private void tableCellCenter(JTable t){
