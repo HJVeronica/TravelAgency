@@ -8,13 +8,17 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
+import java.sql.SQLException;
+import java.util.Vector;
 
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -24,47 +28,77 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+import main.Database;
+
 
 /** Reservation UI & Functions */
 public class Reservation extends JPanel implements ActionListener{
+	//DB에서 클래스 구분에 사용할 ID
 	private final int CLASS_ID = 5;
 	
-	private JButton btnCsEnroll;
-	private JButton btnCsDelete;
-	private JButton btnCsSearch;
+	//JButton
+	private JButton btnRvEnroll;
+	private JButton btnRvDelete;
+	private JButton btnRvSearch;
 	
-	private JLabel lblName;
-	private JLabel lblPhone;
-	private JLabel lblAddress;
-	private JLabel lblMembership;
+	//JLabel
+	private JLabel lblCustomer;
+	private JLabel lblFlight;
+	private JLabel lblBookDate;
+	private JLabel lblStaff;
 	private JLabel lblPayment;
-	private JLabel lblSeat;
-	private JLabel lblDash1;
-	private JLabel lblDash2;
+	private JLabel lblState;
+	private JLabel lblRoute;
 	private JLabel location;
 	
+	//Font, JScrollPane, JTable
 	private Font font;
 	private JScrollPane scroll;
-	private JTable customerTable;
+	private JTable airlineTable;
 	
-	private JTextField tfName;
-	private JTextField tfPhone1;
-	private JTextField tfPhone2;
-	private JTextField tfPhone3;
-	private JTextField tfAddress;
+	//JRadioButton: Payment
+	ButtonGroup payment;
+	JRadioButton paymentCash;
+	JRadioButton paymentCredit;
+	JRadioButton paymentCheck;
+	
+	//JRadioButton: State
+	ButtonGroup state;
+	JRadioButton stateOk;
+	JRadioButton stateStandby;
+	
+	//JTextField
+	private JTextField tfFirst;
+	private JTextField tfBusiness;
+	private JTextField tfEconomy;
 	private JTextField tfSearch;
+	private JTextField tfLength;
+	private JTextField tfSize;
 	
+	//JComboBox
 	private JComboBox cbSearch;
-	private JComboBox cbAirlines;
+	private JComboBox cbCustomer;
+	private JComboBox cbFlight;
+	private JComboBox cbStaff;
 	
-	private JCheckBox chBox;
+	//JCheckBox
+	//private JCheckBox chBox;
 	
-	String alColNames[] = {"ch","ID","이름","주소","전화번호"};
-	String alCombo[] = {"ID","이름","주소","전화번호"};
+	//Vector, String
+	Vector<String> apColNames;
+	String apCombo[] = {"전체","ID","항공사","제작사","종류",
+			"일등석","비즈니스","이코노미","길이","크기"};
+	String RvComboCustomer[] = {"김OO","이OO","박OO","최OO","오OO"};
+	String RvComboFlight[] = {"KE001","KE001","KE001","KE001","KE001"};
+	String RvComboStaff[] = {"심현정", "김상완", "유란영"};
+	Vector<Vector> data;
 	
-	DefaultTableModel model = null;	
+	//Database Class
+	Database db = null;
 	
-	public Reservation(){		//Constructor
+	/** Airline Constructor 
+	 * @throws SQLException */
+	public Reservation() throws SQLException{
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
 		
@@ -76,110 +110,167 @@ public class Reservation extends JPanel implements ActionListener{
 	/** 등록/삭제 버튼 및 등록 부분 UI */
 	private void Enroll_init(){
 		//Label에 사용할 폰트
-		font = new Font("",Font.BOLD,15);
+		font = new Font("",Font.BOLD,12);
 		
 		//등록 부분 양식
-		lblName = new JLabel("이        름 : ");
-		lblName.setBounds(80,30,75,30);
-		lblName.setFont(font);
-		add(lblName);
+		lblCustomer = new JLabel("* 고  객  명 : ");
+		lblCustomer.setBounds(80,30,85,20);
+		lblCustomer.setFont(font);
+		add(lblCustomer);
 		
-		tfName = new JTextField();
-		tfName.setBounds(165, 30, 200, 30);
-		add(tfName);
+		//ComboBox: Customer Names			
+		cbCustomer = new JComboBox(RvComboCustomer);
+		cbCustomer.addActionListener(this);
+		cbCustomer.setBounds(165, 30, 80, 20);
+		add(cbCustomer);
+		
+		lblStaff = new JLabel("* 담당직원 : ");
+		lblStaff.setBounds(275,30,85,20);
+		lblStaff.setFont(font);
+		add(lblStaff);
+		
+		//ComboBox: Customer Names			
+		cbStaff = new JComboBox(RvComboStaff);
+		cbStaff.addActionListener(this);
+		cbStaff.setBounds(360, 30, 80, 20);
+		add(cbStaff);
+		
+		lblFlight = new JLabel("* 항공편명 : ");
+		lblFlight.setBounds(80,65,85,20);
+		lblFlight.setFont(font);
+		add(lblFlight);
+		
+		//ComboBox: Customer Names			
+		cbFlight = new JComboBox(RvComboFlight);
+		cbFlight.addActionListener(this);
+		cbFlight.setBounds(165, 65, 80, 20);
+		add(cbFlight);
+		
+		lblRoute = new JLabel("* 여        정 : ");
+		lblRoute.setBounds(275,65,85,20);
+		lblRoute.setFont(font);
+		add(lblRoute);
+		
+		tfLength = new JTextField();
+		tfLength.setBounds(360, 65, 150, 20);
+		add(tfLength);			
+
 		  
-		lblPhone = new JLabel("전화번호 : ");
-		lblPhone.setBounds(80,70,75,30);
-		lblPhone.setFont(font);
-		add(lblPhone);
+		lblBookDate = new JLabel("* 예  약  일 : ");
+		lblBookDate.setBounds(80,100,75,20);
+		lblBookDate.setFont(font);
+		add(lblBookDate);
+
+		lblPayment = new JLabel("* 지불방법 : ");
+		lblPayment.setBounds(80,170,85,20);
+		lblPayment.setFont(font);
+		add(lblPayment);
 		
-		tfPhone1 = new JTextField();
-		tfPhone1.setBounds(165, 70, 50, 30);
-		add(tfPhone1);
+		//Payment Radio Button
+		payment = new ButtonGroup();
+		paymentCash = new JRadioButton("현금");
+		paymentCredit = new JRadioButton("신용카드");
+		paymentCheck = new JRadioButton("체크카드");
+		payment.add(paymentCash);
+		payment.add(paymentCredit);
+		paymentCash.addActionListener(this);
+		paymentCredit.addActionListener(this);
+		paymentCheck.addActionListener(this);
+		paymentCash.setBounds(160, 170, 70, 20);
+		paymentCash.setFont(font);
+		paymentCash.setBackground(Color.LIGHT_GRAY);
+		paymentCredit.setBounds(230, 170, 80, 20);
+		paymentCredit.setFont(font);
+		paymentCredit.setBackground(Color.LIGHT_GRAY);
+		paymentCheck.setBounds(320, 170, 80, 20);
+		paymentCheck.setFont(font);
+		paymentCheck.setBackground(Color.LIGHT_GRAY);
+		add(paymentCash);
+		add(paymentCredit);
+		add(paymentCheck);
+
+		lblState = new JLabel("* 예약상태 : ");
+		lblState.setBounds(80,200,85,20);
+		lblState.setFont(font);
+		add(lblState);
 		
-		lblDash1 = new JLabel(" ─ ");
-		lblDash1.setBounds(220, 70, 20, 30);
-		add(lblDash1);
-		
-		tfPhone2 = new JTextField();
-		tfPhone2.setBounds(245, 70, 60, 30);
-		add(tfPhone2);
-		
-		lblDash2 = new JLabel(" ─ ");
-		lblDash2.setBounds(310, 70, 20, 30);
-		add(lblDash2);
-		
-		tfPhone3 = new JTextField();
-		tfPhone3.setBounds(335, 70, 60, 30);
-		add(tfPhone3);
-		
-		lblAddress = new JLabel("주        소 : ");
-		lblAddress.setBounds(80,110,75,30);
-		lblAddress.setFont(font);
-		add(lblAddress);
-		
-		tfAddress = new JTextField();
-		tfAddress.setBounds(165, 110, 350, 30);
-		add(tfAddress);			
-		
-		//ComboBox: Airline Names (Statistics)			
-		cbAirlines = new JComboBox();
-		cbAirlines.addItem("Names");
-		cbAirlines.addActionListener(this);
-		cbAirlines.setBounds(65, 160, 100, 30);
-		add(cbAirlines);
+		//State Radio Button
+		state = new ButtonGroup();
+		stateOk = new JRadioButton("OK");
+		stateStandby = new JRadioButton("대기");
+		state.add(stateOk);
+		state.add(stateStandby);
+		stateOk.addActionListener(this);
+		stateStandby.addActionListener(this);
+		stateOk.setBounds(160, 200, 70, 20);
+		stateOk.setFont(font);
+		stateOk.setBackground(Color.LIGHT_GRAY);
+		stateStandby.setBounds(230, 200, 150, 20);
+		stateStandby.setFont(font);
+		stateStandby.setBackground(Color.LIGHT_GRAY);
+		add(stateOk);
+		add(stateStandby);
 		
 		//등록 버튼: 테이블 새로 한 줄 추가
-		btnCsEnroll = new JButton("등록");
-		btnCsEnroll.addActionListener(new ActionListener() {
+		btnRvEnroll = new JButton("등록");
+		btnRvEnroll.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnAddRow();					
 			}
 		});
-		btnCsEnroll.setBounds(778, 155, 62, 30);
-		add(btnCsEnroll);
+		btnRvEnroll.setBounds(778, 220, 62, 30);
+		add(btnRvEnroll);
 		
 		//삭제 버튼: 선택된 테이블 한 줄 삭제
-		btnCsDelete = new JButton("삭제");
-		btnCsDelete.addActionListener(new ActionListener() {
+		btnRvDelete = new JButton("삭제");
+		btnRvDelete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				btnDelRow();					
 			}
 		});
-		btnCsDelete.setBounds(848, 155, 62, 30);
-		add(btnCsDelete);
+		btnRvDelete.setBounds(848, 220, 62, 30);
+		add(btnRvDelete);
 	}
 	
-	/** 테이블 및 검색 부분 UI */
-	private void Table_init(){
-		//DefaultTableModel
-		model = new DefaultTableModel(alColNames, 0);
-		customerTable = new JTable(model);
+	/** 테이블 및 검색 부분 UI 
+	 * @throws SQLException */
+	private void Table_init() throws SQLException{
+		//Connect to DB & Get Data from Airline Table
+		db = new Database();
+		data = new Vector<>();
+		data = db.Table_Initialize(CLASS_ID, data);
 		
-		//Insert Sample Data
-		model.addRow(new Object[]{"","A01","Delta","주소1","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A02","Cathay Pacific","주소2","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A03","Air Canada","주소3","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A04","Korean Air","주소4","+82-10-3456-7890"});
-		model.addRow(new Object[]{"","A05","EastJet","주소5","+1-12-3456-7890"});
+		//Initialize Column Names
+		apColNames = new Vector<>();
+		//apColNames.add("ch");
+		apColNames.add("고객명");
+		apColNames.add("항공편명");
+		apColNames.add("예약일");
+		apColNames.add("담당직원");
+		apColNames.add("지불방법");
+		apColNames.add("예약상태");
+		apColNames.add("여정");
+		
+		//Create a Table with Data and Column Names
+		airlineTable = new JTable(data,apColNames);		
 		
 		//Table Settings
-		customerTable.addMouseListener(new JTableMouseListener());
-		customerTable.getTableHeader().setReorderingAllowed(false);		//테이블 칼럼 이동 방지 (드래그 앤 드롭)
-		tableCellCenter(customerTable);
-		setColumnSize(customerTable);
-		scroll = new JScrollPane(customerTable);
-		scroll.setBounds(60, 200, 850, 360);
+		airlineTable.addMouseListener(new JTableMouseListener());
+		airlineTable.getTableHeader().setReorderingAllowed(false);		//테이블 칼럼 이동 방지
+		tableCellCenter(airlineTable);
+		setColumnSize(airlineTable);
+		scroll = new JScrollPane(airlineTable);
+		scroll.setBounds(70, 260, 850, 300);
 		add(scroll);
 		
 		//CheckBox for the Table
-		chBox = new JCheckBox();
+		/*chBox = new JCheckBox();
 		chBox.setHorizontalAlignment(JLabel.CENTER);
-		customerTable.getColumn("ch").setCellEditor(new DefaultCellEditor(chBox));
-		add(chBox);
+		airlineTable.getColumn("ch").setCellEditor(new DefaultCellEditor(chBox));
+		add(chBox);*/
 		
 		//ComboBox: Search			
-		cbSearch = new JComboBox(alCombo);
+		cbSearch = new JComboBox(apCombo);
 		cbSearch.addActionListener(this);
 		cbSearch.setBounds(280, 580, 80, 30);
 		add(cbSearch);
@@ -188,13 +279,12 @@ public class Reservation extends JPanel implements ActionListener{
 		tfSearch = new JTextField();
 		tfSearch.setBounds(380, 580, 200, 30);			
 		add(tfSearch);
-		//enroll = new EnrollDialog(new JFrame(),"항공사 등록");
 		
 		//검색 버튼
-		btnCsSearch = new JButton("검색");
-		btnCsSearch.setBounds(600, 580, 62, 30);
-		btnCsSearch.addActionListener(this);
-		add(btnCsSearch);
+		btnRvSearch = new JButton("검색");
+		btnRvSearch.setBounds(600, 580, 62, 30);
+		btnRvSearch.addActionListener(this);
+		add(btnRvSearch);
 	}
 	
 	/** 좌표 표시 */
@@ -217,14 +307,14 @@ public class Reservation extends JPanel implements ActionListener{
 	}
 	
 	void btnAddRow(){
-		DefaultTableModel model = (DefaultTableModel)customerTable.getModel();
+		DefaultTableModel model = (DefaultTableModel)airlineTable.getModel();
 		model.addRow(new String[]{"","","","",""});
 	}
 	
 	void btnDelRow(){
-		int row = customerTable.getSelectedRow();
+		int row = airlineTable.getSelectedRow();
 		if(row<0) return;
-		DefaultTableModel model = (DefaultTableModel)customerTable.getModel();
+		DefaultTableModel model = (DefaultTableModel)airlineTable.getModel();
 		model.removeRow(row);
 	}
 	
@@ -232,14 +322,14 @@ public class Reservation extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();	//선택된 버튼 가져오기
 		
-		if(source == "btnCsEnroll"){
+		if(source == "btnRvEnroll"){
 			setVisible(false);
 		}
 		
 	}
 	
 	
-	DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
+	/*DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
 		public Component getTableCellRendererComponent
 		(JTable t, Object value, boolean isSelected, boolean hasFocus, int row, int column){
 			chBox.setSelected(((Boolean)value).booleanValue());
@@ -247,7 +337,7 @@ public class Reservation extends JPanel implements ActionListener{
 			
 			return chBox;				
 		}
-	};
+	};*/
 	
 	/** 테이블 내용 가운데 정렬 */
 	private void tableCellCenter(JTable t){
@@ -268,10 +358,12 @@ public class Reservation extends JPanel implements ActionListener{
 	private void setColumnSize(JTable t){
 		TableColumnModel tcm = t.getColumnModel();
 		
-		tcm.getColumn(0).setPreferredWidth(20);
-		tcm.getColumn(1).setPreferredWidth(30);
-		tcm.getColumn(2).setPreferredWidth(100);
+		//tcm.getColumn(0).setPreferredWidth(5);
+		/*tcm.getColumn(0).setPreferredWidth(25);
+		tcm.getColumn(1).setPreferredWidth(100);
+		tcm.getColumn(2).setPreferredWidth(50);
 		tcm.getColumn(3).setPreferredWidth(400);
+		tcm.getColumn(4).setPreferredWidth(100);*/
 		
 		//전체 열 사이즈 변경 불가
 		for(int i=0;i<tcm.getColumnCount();i++){
@@ -287,7 +379,7 @@ public class Reservation extends JPanel implements ActionListener{
 			int col = jtable.getSelectedColumn();
 			DefaultTableModel model = (DefaultTableModel)jtable.getModel();
 			
-			System.out.println(model.getValueAt(row, 0));	//눌려진 행의 부분에서 0번째 값 출력
+			System.out.println(model.getValueAt(row, 1));	//눌려진 행의 부분에서 1번째(2번째 열) 값 출력
 			System.out.println(model.getValueAt(row, col));	//눌려진 행과 열에 해당하는 선택된 데이터 하나 출력			
 		}
 
@@ -304,7 +396,7 @@ public class Reservation extends JPanel implements ActionListener{
 		public void mouseReleased(MouseEvent e) {}		
 	}
 	
-	private class TableModel extends AbstractTableModel{
+	/*private class TableModel extends AbstractTableModel{
 		@Override
 		public int getColumnCount() {
 			return 0;
@@ -320,5 +412,6 @@ public class Reservation extends JPanel implements ActionListener{
 			return null;
 		}
 		
-	}
+	}*/
+	
 }

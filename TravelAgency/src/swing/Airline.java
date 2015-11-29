@@ -61,7 +61,7 @@ class Airline extends JPanel implements ActionListener{
 	private JComboBox cbAirlines;
 	
 	//JCheckBox
-	private JCheckBox chBox;
+	//private JCheckBox chBox;
 	
 	//Vector, String
 	Vector<String> alColNames;
@@ -247,7 +247,7 @@ class Airline extends JPanel implements ActionListener{
 	}
 	
 	
-	DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
+	/*DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
 		public Component getTableCellRendererComponent
 		(JTable t, Object value, boolean isSelected, boolean hasFocus, int row, int column){
 			chBox.setSelected(((Boolean)value).booleanValue());
@@ -255,7 +255,7 @@ class Airline extends JPanel implements ActionListener{
 			
 			return chBox;				
 		}
-	};
+	};*/
 	
 	/** 테이블 내용 가운데 정렬 */
 	private void tableCellCenter(JTable t){
