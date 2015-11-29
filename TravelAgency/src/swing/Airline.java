@@ -40,8 +40,6 @@ class Airline extends JPanel implements ActionListener{
 	private JLabel lblName;
 	private JLabel lblPhone;
 	private JLabel lblAddress;
-	private JLabel lblDash1;
-	private JLabel lblDash2;
 	private JLabel location;
 	
 	//Font, JScrollPane, JTable
@@ -51,9 +49,7 @@ class Airline extends JPanel implements ActionListener{
 	
 	//JTextField
 	private JTextField tfName;
-	private JTextField tfPhone1;
-	private JTextField tfPhone2;
-	private JTextField tfPhone3;
+	private JTextField tfPhone;
 	private JTextField tfAddress;
 	private JTextField tfSearch;
 	
@@ -68,9 +64,6 @@ class Airline extends JPanel implements ActionListener{
 	Vector<String> alColNames;
 	String alCombo[] = {"傈眉","ID","捞抚","惫啊","林家","傈拳锅龋"};
 	Vector<Vector> data;
-	
-	//DefaultTableModel
-	DefaultTableModel model = null;
 	
 	//Database Class
 	Database db = null;
@@ -106,25 +99,9 @@ class Airline extends JPanel implements ActionListener{
 		lblPhone.setFont(font);
 		add(lblPhone);
 		
-		tfPhone1 = new JTextField();
-		tfPhone1.setBounds(165, 70, 50, 30);
-		add(tfPhone1);
-		
-		lblDash1 = new JLabel(" Α ");
-		lblDash1.setBounds(220, 70, 20, 30);
-		add(lblDash1);
-		
-		tfPhone2 = new JTextField();
-		tfPhone2.setBounds(245, 70, 60, 30);
-		add(tfPhone2);
-		
-		lblDash2 = new JLabel(" Α ");
-		lblDash2.setBounds(310, 70, 20, 30);
-		add(lblDash2);
-		
-		tfPhone3 = new JTextField();
-		tfPhone3.setBounds(335, 70, 60, 30);
-		add(tfPhone3);
+		tfPhone = new JTextField();
+		tfPhone.setBounds(165, 70, 200, 30);
+		add(tfPhone);
 		
 		lblAddress = new JLabel("林        家 : ");
 		lblAddress.setBounds(80,110,75,30);
@@ -180,16 +157,8 @@ class Airline extends JPanel implements ActionListener{
 		alColNames.add("林家");
 		alColNames.add("傈拳锅龋");
 		
-		//DefaultTableModel
-		model = new DefaultTableModel(alColNames, 0);
+		//Create a Table with Data and Column Names
 		airlineTable = new JTable(data,alColNames);		
-		
-		//Insert Sample Data
-		/*model.addRow(new Object[]{"","A01","Delta","USA","林家1","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A02","Cathay Pacific","China","林家2","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A03","Air Canada","China","林家3","+1-12-3456-7890"});
-		model.addRow(new Object[]{"","A04","Korean Air","Korea","林家4","+82-10-3456-7890"});
-		model.addRow(new Object[]{"","A05","Air France","France","林家5","+1-12-3456-7890"});*/
 		
 		//Table Settings
 		airlineTable.addMouseListener(new JTableMouseListener());
