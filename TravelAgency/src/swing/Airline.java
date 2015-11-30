@@ -25,21 +25,22 @@ import javax.swing.table.TableColumnModel;
 import main.Database;
 
 /** 
- * <b> Airline Class </b>
- * : Airline UI & Functions
+ * <p><b> Airline Class </b> 
+ * : Airline UI & Functions</p>
  * 
- * Each method is as follows
- * : Constructor {@link #Airline()}
- * : UI of Enroll/Delete Buttons and Enroll Form {@link #Enroll_init()}
- * : UI of Table and Search Part {@link #Table_init()}
- * : Add a New Row {@link #AddRow()}
- * : Delete Selected Row {@link #DelRow()}
- * : Action Listener {@link #actionPerformed(ActionEvent)}
- * : Set the Alignment of the Rows {@link #tableCellCenter(JTable)}
- * : Set the Columns' Width & Fix the Columns' Location {@link #setColumnSize(JTable)}
- * : Table Mouse Listener (Click, Enter, Exit, Press, Release) {@link JTableMouseListener}
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #Airline()} : Constructor  <br>
+ * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
+ * - {@link #Table_init()} : UI of Table and Search Part  <br>
+ * - {@link #AddRow()} : Add a New Row  <br>
+ * - {@link #DelRow()} : Delete Selected Row  <br>
+ * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
+ * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
+ * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
+ * <p><b>Another Class</b> <br>
+ * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 0.3 12/01/15
+ * @version 0.3.1 12/01/15
  * @author Hyunjeong Shim, 김상완, 유란영
  * */
 public class Airline extends JPanel implements ActionListener{
@@ -57,7 +58,7 @@ public class Airline extends JPanel implements ActionListener{
 	private final int SEARCH_PHONE = 6;
 	
 	//JButton
-	private JButton btnAlEnroll;
+	private JButton btnAlAddnUpdate;
 	private JButton btnAlDelete;
 	private JButton btnAlSearch;
 	
@@ -88,14 +89,14 @@ public class Airline extends JPanel implements ActionListener{
 	Vector<String> alColNames;
 	String alCombo[] = {"전체","ID","이름","국가","주소","전화번호"};
 	Vector<String> comboNames;
-	private String id = null;
+	private String id;
 	private int searchMode;
 	
 	//DefaultTableModel
 	public static DefaultTableModel model;
 	
 	//Database Class
-	Database db = null;
+	Database db;
 	
 	/** 
 	 * Airline Constructor 
@@ -163,20 +164,22 @@ public class Airline extends JPanel implements ActionListener{
 		cbAirlines.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String name = cbAirlines.getSelectedItem().toString();
-				System.out.println("Name: "+name);
-				model.setRowCount(0);
-				db.AirlineSelectName(name);
+				if(cbAirlines.getSelectedItem()!=null){
+					String name = cbAirlines.getSelectedItem().toString();
+					System.out.println("Name: "+name);
+					model.setRowCount(0);
+					db.AirlineSelectName(name);
+				}
 			}			
 		});
 		cbAirlines.setBounds(75, 170, 130, 20);
 		add(cbAirlines);
 		
 		//등록 버튼: 테이블 새로 한 줄 추가
-		btnAlEnroll = new JButton("등록");
-		btnAlEnroll.addActionListener(this);
-		btnAlEnroll.setBounds(778, 155, 62, 30);
-		add(btnAlEnroll);
+		btnAlAddnUpdate = new JButton("등록");
+		btnAlAddnUpdate.addActionListener(this);
+		btnAlAddnUpdate.setBounds(778, 155, 62, 30);
+		add(btnAlAddnUpdate);
 		
 		//삭제 버튼: 선택된 테이블 한 줄 삭제
 		btnAlDelete = new JButton("삭제");
@@ -202,10 +205,15 @@ public class Airline extends JPanel implements ActionListener{
 		airlineTable = new JTable(model);		
 		
 		//Table settings
+		//Enable auto row sorting
+		airlineTable.setAutoCreateRowSorter(true);
+		//Add mouse listener
 		airlineTable.addMouseListener(new JTableMouseListener());
-		airlineTable.getTableHeader().setReorderingAllowed(false);		//테이블 칼럼 이동 방지
+		//Fix the column's location
+		airlineTable.getTableHeader().setReorderingAllowed(false);		
 		//Enable multiple selection
 		airlineTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		
 		tableCellCenter(airlineTable);
 		setColumnSize(airlineTable);
 		scroll = new JScrollPane(airlineTable);
@@ -256,14 +264,13 @@ public class Airline extends JPanel implements ActionListener{
 		add(location);
 	}*/
 	
-	/** Add a New Row */
-	void AddRow(){	
-		//Get last id number
-		id = db.getID(CLASS_ID);
+	/** Add a New Row & Update Selected Row*/
+	private void AddnUpdateRow(int flag){	
 		//Get text from TextField
 		String name = tfName.getText();
 		String phone = tfPhone.getText();
 		String country = tfCountry.getText();
+		System.out.println("Country: "+country);
 		String address = tfAddress.getText();
 		String[] rows = {id,name,country,address,phone};
 		
@@ -272,9 +279,26 @@ public class Airline extends JPanel implements ActionListener{
 			JOptionPane.showMessageDialog(null, "필수 입력칸을 모두 채워주세요.",
 					"Message",JOptionPane.ERROR_MESSAGE);
 		else{
-			db.InsertData(CLASS_ID,rows);
-			model.addRow(rows);
-			cbAirlines.addItem(name);
+			if(flag==0){	//Add a new row
+				db.InsertData(CLASS_ID,rows);
+				model.addRow(rows);
+				cbAirlines.addItem(name);
+			}
+			else{			//Update selected row
+				db.UpdateData(CLASS_ID,rows);
+				JOptionPane.showMessageDialog(null, "수정 되었습니다.",
+						"Message",JOptionPane.OK_OPTION);
+				//Reset button text
+				btnAlAddnUpdate.setText("등록");
+				btnAlDelete.setText("삭제");
+				//Reset ComboBox
+				cbAirlines.removeAllItems();
+				comboNames = db.AirlineComboNames();
+				for(int i=0;i<comboNames.size();i++){
+					//System.out.println("comboNames: "+comboNames.get(i));
+					cbAirlines.addItem(comboNames.get(i));
+				}
+			}
 		}
 		
 		//Reset TextField
@@ -283,11 +307,11 @@ public class Airline extends JPanel implements ActionListener{
 		tfCountry.setText(null);
 		tfAddress.setText(null);
 		//Reset ComboBox
-		cbAirlines.setSelectedIndex(0);
+		cbAirlines.setSelectedIndex(0);		
 	}
 	
 	/** Delete Selected Row */
-	void DelRow(){
+	private void DelRow(){
 		if(airlineTable.getSelectedRowCount()>0){
 			for(int i : airlineTable.getSelectedRows()){
 				db.DeleteData(CLASS_ID, String.valueOf(model.getValueAt(i, 0)));
@@ -309,11 +333,33 @@ public class Airline extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();	//Get Selected Object
 		
-		if(source.equals(btnAlEnroll)){
-			AddRow();
+		if(source.equals(btnAlAddnUpdate)){
+			//Check if it's add mode(0) or update mode(1)
+			if(btnAlAddnUpdate.getText().equals("등록")){
+				//Get last id number
+				id = db.getID(CLASS_ID);
+				AddnUpdateRow(0);
+			}
+			else{
+				AddnUpdateRow(1);
+			}
 		}
 		else if(source.equals(btnAlDelete)){
-			DelRow();
+			if(btnAlDelete.getText().equals("삭제")){
+				DelRow();
+			}
+			else{
+				//Reset TextField
+				tfName.setText(null);
+				tfPhone.setText(null);
+				tfCountry.setText(null);
+				tfAddress.setText(null);
+				//Reset ComboBox
+				cbAirlines.setSelectedIndex(0);
+				
+				btnAlDelete.setText("삭제");
+				btnAlAddnUpdate.setText("등록");
+			}
 		}
 		else if(source.equals(btnAlSearch)){
 			String keyWord = tfSearch.getText().trim();
@@ -336,18 +382,17 @@ public class Airline extends JPanel implements ActionListener{
 		}
 	}	
 
-	/** Set the Alignment of the Rows */
+	/** Set the Alignment of the Rows to Center */
 	private void tableCellCenter(JTable t){
 		DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
-		dtcr.setHorizontalAlignment(SwingConstants.CENTER);		//Renderer을 가운데 정렬로
+		//Set the alignment of the renderer to center
+		dtcr.setHorizontalAlignment(SwingConstants.CENTER);	
 		
 		TableColumnModel tcm = t.getColumnModel();
 		
-		//전체 열에 가운데 정렬
+		//Set the alignment of all the rows to center
 		for(int i=0;i<tcm.getColumnCount();i++){
 			tcm.getColumn(i).setCellRenderer(dtcr);
-			//모델에서 컬럼 갯수만큼 컬럼 가져와서 for문으로
-			//각각의 셀 Renderer을 아까 생성한 dtcr에 set
 		}
 	}
 	
@@ -371,13 +416,32 @@ public class Airline extends JPanel implements ActionListener{
 	/** Table Mouse Listener (Click, Enter, Exit, Press, Release)*/
 	private class JTableMouseListener implements MouseListener{
 		public void mouseClicked(MouseEvent e) {
-			JTable jtable = (JTable)e.getSource();
-			int row = jtable.getSelectedRow();
-			int col = jtable.getSelectedColumn();
-			DefaultTableModel model = (DefaultTableModel)jtable.getModel();
-			
-			//System.out.println(model.getValueAt(row, 1));	//눌려진 행의 부분에서 1번째(2번째 열) 값 출력
-			//System.out.println(model.getValueAt(row, col));	//눌려진 행과 열에 해당하는 선택된 데이터 하나 출력			
+			System.out.println("선택 갯수: "+airlineTable.getSelectedRowCount());
+			//Action when you right-click the column
+			if(e.getButton()==3){
+				//Check if the columns are multi-selected or not
+				if(airlineTable.getSelectedRowCount()>1){
+					JOptionPane.showMessageDialog(null, "수정할 컬럼을 한 개만 선택하세요.",
+							"Message",JOptionPane.ERROR_MESSAGE);
+				}
+				else if(airlineTable.getSelectedRow()==-1){
+					JOptionPane.showMessageDialog(null, "수정할 칼럼을 먼저 마우스 왼쪽 클릭해주세요.",
+							"Message",JOptionPane.ERROR_MESSAGE);
+				}
+				else{
+					int row = airlineTable.getSelectedRow();
+					for(int i=0;i<airlineTable.getColumnCount();i++){
+						//System.out.print(model.getValueAt(row, i)+"\t");
+						if(i==0)	id = (String) model.getValueAt(row, i);
+						if(i==1)	tfName.setText((String) model.getValueAt(row, i));
+						else if(i==2)	tfCountry.setText((String) model.getValueAt(row, i));
+						else if(i==3)	tfAddress.setText((String) model.getValueAt(row, i));
+						else if(i==4)	tfPhone.setText((String) model.getValueAt(row, i));
+					}
+					btnAlAddnUpdate.setText("수정");
+					btnAlDelete.setText("취소");
+				}
+			}			
 		}
 
 		@Override

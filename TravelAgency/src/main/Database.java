@@ -14,7 +14,7 @@ import java.util.Vector;
  * Connect to TravelAgency Database 
  * Execute Querys
  * 
- * @version 0.3 12/01/15
+ * @version 0.3.1 12/01/15
  * @author Hyunjeong Shim, 김상완, 유란영
  */
 public class Database{
@@ -297,7 +297,7 @@ public class Database{
 					sql = "delete from airline where aId=?";					
 					ps = conn.prepareStatement(sql);
 					ps.setString(1, id);
-					int result = ps.executeUpdate();				
+					ps.executeUpdate();				
 					break;
 				case 2: 	//Customer Class
 					sql = "";
@@ -312,6 +312,30 @@ public class Database{
 		}
 	}
 	
+	public void UpdateData(int TabNum, String[] rows){
+		try {
+			switch(TabNum){
+				case 1:		//Airline Class 
+					sql = "update airline set aId=?,name=?,country=?,"
+							+ "address=?,phone=? where aId=?";
+					ps = conn.prepareStatement(sql);
+					for(int i=0;i<rows.length;i++)
+						ps.setString(i+1, rows[i]);
+					ps.setString(6, rows[0]);
+					ps.executeUpdate();	
+
+					break;
+				case 2: 	//Customer Class
+					sql = "";
+					break;
+				case 3: break;
+				case 4: break;
+				case 5: break;
+			}
+		} catch (SQLException e) {
+			System.out.println("Connection Error: "+e.getStackTrace());
+		}
+	}
 	/**
 	 * Search the Information from Airline Table
 	 * @param int searchMode Get search mode from the ComboBox
