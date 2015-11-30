@@ -81,6 +81,8 @@ public class Customer extends JPanel implements ActionListener{
 	String csCombo[] = {"ID","이름","주소","전화번호","멤버쉽","결제방법","좌석"};
 	Vector<Vector> data;
 	
+	public static DefaultTableModel model;
+	
 	Database db;
 	
 	/** Customer Constructor 
@@ -88,6 +90,9 @@ public class Customer extends JPanel implements ActionListener{
 	public Customer() throws SQLException{
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
+		
+		//Connect to DB
+		db = new Database();
 		
 		Enroll_init();
 		Table_init();
@@ -149,7 +154,7 @@ public class Customer extends JPanel implements ActionListener{
 		tfAddress.setBounds(180, 135, 350, 20);
 		add(tfAddress);
 		
-		lblSeat = new JLabel("* 선호 좌석 : ");
+		lblSeat = new JLabel("  선호 좌석 : ");
 		lblSeat.setBounds(80,170,75,20);
 		lblSeat.setFont(font);
 		add(lblSeat);
@@ -211,10 +216,7 @@ public class Customer extends JPanel implements ActionListener{
 	/** 테이블 및 검색 부분 UI 
 	 * @throws SQLException */
 	private void Table_init() throws SQLException{
-		//Connect to DB & Get Data from Airline Table
-		db = new Database();
-		data = new Vector<>();
-		data = db.Table_Initialize(CLASS_ID, data);
+		
 		
 		//Initialize Column Names
 		csColNames = new Vector<>();
@@ -227,8 +229,12 @@ public class Customer extends JPanel implements ActionListener{
 		csColNames.add("결제방법");
 		csColNames.add("좌석");
 		
-		//Create a Table with Data and Column Names
-		customerTable = new JTable(data,csColNames);	
+		//Create DefaultTableModel
+		model = new DefaultTableModel(csColNames, 0);
+		db.Table_Initialize(CLASS_ID);
+		
+		//Create a Table with DefaultTableModel
+		customerTable = new JTable(model);		
 		
 		//Table Settings
 		customerTable.addMouseListener(new JTableMouseListener());
@@ -335,10 +341,13 @@ public class Customer extends JPanel implements ActionListener{
 	private void setColumnSize(JTable t){
 		TableColumnModel tcm = t.getColumnModel();
 		
-		tcm.getColumn(0).setPreferredWidth(20);
-		tcm.getColumn(1).setPreferredWidth(30);
-		tcm.getColumn(2).setPreferredWidth(100);
+		tcm.getColumn(0).setPreferredWidth(40);
+		tcm.getColumn(1).setPreferredWidth(60);
+		tcm.getColumn(2).setPreferredWidth(120);
 		tcm.getColumn(3).setPreferredWidth(400);
+		tcm.getColumn(4).setPreferredWidth(70);
+		tcm.getColumn(5).setPreferredWidth(100);
+		tcm.getColumn(6).setPreferredWidth(100);
 		
 		//전체 열 사이즈 변경 불가
 		for(int i=0;i<tcm.getColumnCount();i++){

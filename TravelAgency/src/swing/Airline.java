@@ -11,10 +11,12 @@ import java.sql.SQLException;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
+import javax.swing.ComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -28,7 +30,7 @@ import javax.swing.table.TableColumnModel;
 import main.Database;
 
 /** Airline UI & Functions */
-class Airline extends JPanel implements ActionListener{
+public class Airline extends JPanel implements ActionListener{
 	//DB에서 클래스 구분에 사용할 ID
 	private final int CLASS_ID = 1;
 	
@@ -58,7 +60,7 @@ class Airline extends JPanel implements ActionListener{
 	
 	//JComboBox
 	private JComboBox cbSearch;
-	private JComboBox cbAirlines;
+	private JComboBox<String> cbAirlines;
 	
 	//JCheckBox
 	//private JCheckBox chBox;
@@ -66,16 +68,21 @@ class Airline extends JPanel implements ActionListener{
 	//Vector, String
 	Vector<String> alColNames;
 	String alCombo[] = {"전체","ID","이름","국가","주소","전화번호"};
-	Vector<Vector> data;
+	Vector<String> comboNames;
+	
+	//DefaultTableModel
+	public static DefaultTableModel model;
 	
 	//Database Class
 	Database db = null;
 	
-	/** Airline Constructor 
-	 * @throws SQLException */
-	public Airline() throws SQLException{
+	/** Airline Constructor */
+	public Airline(){
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
+		
+		//Connect to DB
+		db = new Database();
 		
 		Enroll_init();
 		Table_init();
@@ -124,42 +131,38 @@ class Airline extends JPanel implements ActionListener{
 		tfAddress.setBounds(155, 135, 350, 20);
 		add(tfAddress);			
 		
-		//ComboBox: Airline Names (Statistics)			
-		cbAirlines = new JComboBox();
-		cbAirlines.addItem("Names");
-		cbAirlines.addActionListener(this);
-		cbAirlines.setBounds(75, 170, 100, 20);
+		//ComboBox: Airline Names (Statistics)
+		comboNames = new Vector<>();
+		comboNames = db.AirlineComboNames(comboNames);
+		cbAirlines = new JComboBox<String>(comboNames);
+		cbAirlines.setSelectedItem(0);
+		cbAirlines.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String name = cbAirlines.getSelectedItem().toString();
+				System.out.println("Name: "+name);
+				model.setRowCount(0);
+				db.AirlineSelectName(name);
+			}			
+		});
+		cbAirlines.setBounds(75, 170, 130, 20);
 		add(cbAirlines);
 		
 		//등록 버튼: 테이블 새로 한 줄 추가
 		btnAlEnroll = new JButton("등록");
-		btnAlEnroll.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnAddRow();					
-			}
-		});
+		btnAlEnroll.addActionListener(this);
 		btnAlEnroll.setBounds(778, 155, 62, 30);
 		add(btnAlEnroll);
 		
 		//삭제 버튼: 선택된 테이블 한 줄 삭제
 		btnAlDelete = new JButton("삭제");
-		btnAlDelete.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnDelRow();					
-			}
-		});
+		btnAlDelete.addActionListener(this);
 		btnAlDelete.setBounds(848, 155, 62, 30);
 		add(btnAlDelete);
 	}
 	
-	/** 테이블 및 검색 부분 UI 
-	 * @throws SQLException */
-	private void Table_init() throws SQLException{
-		//Connect to DB & Get Data from Airline Table
-		db = new Database();
-		data = new Vector<>();
-		data = db.Table_Initialize(CLASS_ID, data);
-		
+	/** 테이블 및 검색 부분 UI */
+	private void Table_init(){
 		//Initialize Column Names
 		alColNames = new Vector<>();
 		//alColNames.add("ch");
@@ -169,8 +172,11 @@ class Airline extends JPanel implements ActionListener{
 		alColNames.add("주소");
 		alColNames.add("전화번호");
 		
+		model = new DefaultTableModel(alColNames, 0);
+		db.Table_Initialize(CLASS_ID);
+		
 		//Create a Table with Data and Column Names
-		airlineTable = new JTable(data,alColNames);		
+		airlineTable = new JTable(model);		
 		
 		//Table Settings
 		airlineTable.addMouseListener(new JTableMouseListener());
@@ -224,28 +230,44 @@ class Airline extends JPanel implements ActionListener{
 		add(location);
 	}
 	
-	void btnAddRow(){
+	/** Add a New Row */
+	void btnAddRow(String[] rows){
 		DefaultTableModel model = (DefaultTableModel)airlineTable.getModel();
-		model.addRow(new String[]{"","","","",""});
+		model.addRow(rows);
 	}
 	
+	/** Delete Selected Row */
 	void btnDelRow(){
 		int row = airlineTable.getSelectedRow();
 		if(row<0) return;
 		DefaultTableModel model = (DefaultTableModel)airlineTable.getModel();
 		model.removeRow(row);
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Object source = e.getSource();	//선택된 버튼 가져오기
+		Object source = e.getSource();	//Get Selected Object
 		
-		if(source == "btnAlEnroll"){
-			setVisible(false);
+		if(source.equals(btnAlEnroll)){
+			String id = db.getID(CLASS_ID);
+			String name = tfName.getText();
+			String phone = tfPhone.getText();
+			String country = tfCountry.getText();
+			String address = tfAddress.getText();
+			String[] rows = {id,name,country,address,phone};
+			
+			if(name.isEmpty() | phone.isEmpty() | country.isEmpty() | address.isEmpty())
+				JOptionPane.showMessageDialog(null, "필수 입력칸을 모두 채워주세요!","Message",JOptionPane.ERROR_MESSAGE);
+			else{
+				db.InsertData(CLASS_ID,rows);
+				btnAddRow(rows);
+				comboNames.add(name);
+			}
 		}
-		
-	}
-	
+		else if(source.equals(btnAlDelete)){
+			btnDelRow();
+		}		
+	}	
 	
 	/*DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
 		public Component getTableCellRendererComponent

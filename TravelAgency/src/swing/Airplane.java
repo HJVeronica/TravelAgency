@@ -89,10 +89,12 @@ public class Airplane extends JPanel implements ActionListener{
 	
 	//Vector, String
 	Vector<String> apColNames;
-	String apCombo[] = {"전체","ID","항공사","제작사","종류",
+	String apCombo[] = {"전체","ID","항공사ID","제작사","종류",
 			"일등석","비즈니스","이코노미","길이","크기"};
 	String alCombo[] = {"Korean Air","Emirates","Delta","Lufthansa","Air France"};
 	Vector<Vector> data;
+	
+	public static DefaultTableModel model;
 	
 	//Database Class
 	Database db = null;
@@ -260,14 +262,14 @@ public class Airplane extends JPanel implements ActionListener{
 	private void Table_init() throws SQLException{
 		//Connect to DB & Get Data from Airline Table
 		db = new Database();
-		data = new Vector<>();
-		data = db.Table_Initialize(CLASS_ID, data);
+		/*data = new Vector<>();
+		db.Table_Initialize(CLASS_ID);*/
 		
 		//Initialize Column Names
 		apColNames = new Vector<>();
 		//apColNames.add("ch");
 		apColNames.add("ID");
-		apColNames.add("항공사");
+		apColNames.add("항공사ID");
 		apColNames.add("제작사");
 		apColNames.add("종류");
 		apColNames.add("일등석");
@@ -276,8 +278,11 @@ public class Airplane extends JPanel implements ActionListener{
 		apColNames.add("길이");
 		apColNames.add("크기");
 		
+		model = new DefaultTableModel(apColNames, 0);
+		db.Table_Initialize(CLASS_ID);
+		
 		//Create a Table with Data and Column Names
-		airlineTable = new JTable(data,apColNames);		
+		airlineTable = new JTable(model);		
 		
 		//Table Settings
 		airlineTable.addMouseListener(new JTableMouseListener());
@@ -383,12 +388,13 @@ public class Airplane extends JPanel implements ActionListener{
 	private void setColumnSize(JTable t){
 		TableColumnModel tcm = t.getColumnModel();
 		
-		//tcm.getColumn(0).setPreferredWidth(5);
-		/*tcm.getColumn(0).setPreferredWidth(25);
-		tcm.getColumn(1).setPreferredWidth(100);
+		/*tcm.getColumn(0).setPreferredWidth(40);
+		tcm.getColumn(1).setPreferredWidth(40);
 		tcm.getColumn(2).setPreferredWidth(50);
-		tcm.getColumn(3).setPreferredWidth(400);
-		tcm.getColumn(4).setPreferredWidth(100);*/
+		tcm.getColumn(3).setPreferredWidth(50);
+		tcm.getColumn(4).setPreferredWidth(70);
+		tcm.getColumn(5).setPreferredWidth(100);
+		tcm.getColumn(6).setPreferredWidth(100);*/
 		
 		//전체 열 사이즈 변경 불가
 		for(int i=0;i<tcm.getColumnCount();i++){

@@ -91,16 +91,19 @@ public class Reservation extends JPanel implements ActionListener{
 	String RvComboCustomer[] = {"김OO","이OO","박OO","최OO","오OO"};
 	String RvComboFlight[] = {"KE001","KE001","KE001","KE001","KE001"};
 	String RvComboStaff[] = {"심현정", "김상완", "유란영"};
-	Vector<Vector> data;
+	
+	public static DefaultTableModel model;
 	
 	//Database Class
 	Database db = null;
 	
-	/** Airline Constructor 
-	 * @throws SQLException */
-	public Reservation() throws SQLException{
+	/** Airline Constructor */
+	public Reservation(){
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
+		
+		//Connect to DB
+		db = new Database();
 		
 		Enroll_init();
 		Table_init();
@@ -234,12 +237,7 @@ public class Reservation extends JPanel implements ActionListener{
 	
 	/** 테이블 및 검색 부분 UI 
 	 * @throws SQLException */
-	private void Table_init() throws SQLException{
-		//Connect to DB & Get Data from Airline Table
-		db = new Database();
-		data = new Vector<>();
-		data = db.Table_Initialize(CLASS_ID, data);
-		
+	private void Table_init(){
 		//Initialize Column Names
 		apColNames = new Vector<>();
 		//apColNames.add("ch");
@@ -251,8 +249,12 @@ public class Reservation extends JPanel implements ActionListener{
 		apColNames.add("예약상태");
 		apColNames.add("여정");
 		
-		//Create a Table with Data and Column Names
-		airlineTable = new JTable(data,apColNames);		
+		//Create DefaultTableModel
+		model = new DefaultTableModel(apColNames, 0);
+		db.Table_Initialize(CLASS_ID);
+		
+		//Create a Table with DefaultTableModel
+		airlineTable = new JTable(model);
 		
 		//Table Settings
 		airlineTable.addMouseListener(new JTableMouseListener());
