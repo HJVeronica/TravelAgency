@@ -46,8 +46,8 @@ import main.Database;
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 1.0 12/02/15
- * @author Hyunjeong Shim, 김상완, 유란영
+ * @version 1.1 12/02/15
+ * @author 심현정, 김상완, 유란영
  * */
 @SuppressWarnings("serial")
 public class Customer extends JPanel implements ActionListener, ItemListener{
@@ -79,7 +79,6 @@ public class Customer extends JPanel implements ActionListener, ItemListener{
 	private JLabel lblPayment;
 	private JLabel lblAddress;
 	private JLabel lblSeat;
-	private JLabel location;
 	
 	//Font, JScrollPane, JTable
 	private Font font;
@@ -115,7 +114,6 @@ public class Customer extends JPanel implements ActionListener, ItemListener{
 	
 	//JComboBox<String>: Search options
 	private JComboBox<String> cbSearch;
-	//private JComboBox<String> cbCustomer;
 	
 	//Vector<String>: Column Names
 	Vector<String> csColNames;
@@ -154,12 +152,11 @@ public class Customer extends JPanel implements ActionListener, ItemListener{
 		
 		Enroll_init();
 		Table_init();
-		Location();
 	}
 	
 	/** 등록/삭제 버튼 및 등록 부분 UI */
 	private void Enroll_init(){
-		//Font for Label
+		//Font for Labels
 		font = new Font("",Font.BOLD,12);
 		
 		//Enroll Form
@@ -353,7 +350,6 @@ public class Customer extends JPanel implements ActionListener, ItemListener{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				searchMode = cbSearch.getSelectedIndex();
-				//System.out.println("Search Mode: "+searchMode);
 			}			
 		});
 		cbSearch.setBounds(280, 580, 80, 30);
@@ -369,25 +365,6 @@ public class Customer extends JPanel implements ActionListener, ItemListener{
 		btnCsSearch.setBounds(600, 580, 62, 30);
 		btnCsSearch.addActionListener(this);
 		add(btnCsSearch);
-	}
-	
-	/** 좌표 표시 */
-	public void Location(){
-		location = new JLabel("현재 좌표");
-		MouseMotionAdapter ma = new MouseMotionAdapter() {
-			public void mouseMoved(MouseEvent e) {
-                // 마우스 좌표 얻어오기
-                int x = e.getX();
-                int y = e.getY();
-                String str = "x좌표:" + x + ",y좌표:" + y;
-
-                // Label에 문자열 넣기
-                location.setText(str);
-            }
-		};
-		this.addMouseMotionListener(ma);
-		location.setBounds(610, 155, 200, 32);
-		add(location);
 	}
 	
 	/** Add a New Row & Update Selected Row */
