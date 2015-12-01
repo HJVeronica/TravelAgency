@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -14,7 +13,7 @@ import java.util.Vector;
  * Connect to TravelAgency Database 
  * Execute Querys
  * 
- * @version 0.3.1 12/01/15
+ * @version 0.9.1 12/01/15
  * @author Hyunjeong Shim, 김상완, 유란영
  */
 public class Database{
@@ -25,38 +24,20 @@ public class Database{
 	private String sql = "";
 	private Statement st = null;
 	private ResultSet rs = null;
-	private Scanner in = new Scanner(System.in);
-	private int result;
+	//private int result;
 	private Vector<String> line;
-	private Vector<Vector> select;
 	private PreparedStatement ps = null;
 	
 	/** Database Constructor: Connect to DB */
 	public Database(){		
 		try {
 			conn = DriverManager.getConnection(URL,USER,PASSWORD);
-			st = conn.createStatement();
-			//System.out.println("DB is connected.");
-			
+			st = conn.createStatement();			
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
 		}
 	}	
-	
-	/** 
-	 * Execute Query 
-	 * */
-	/*public void ExecuteQuery(String sql, int num){
-		try {
-			if(num==0)
-				result = st.executeUpdate(sql);
-			else
-				rs = st.executeQuery(sql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}*/
-	
+
 	/**
 	 * Initialize the Table of Each Tab
 	 * @param int TabNum Each class id for distinguishing classes
@@ -300,8 +281,7 @@ public class Database{
 					ps.executeUpdate();				
 					break;
 				case 2: 	//Customer Class
-					sql = "";
-					
+					sql = "";					
 					break;
 				case 3: break;
 				case 4: break;
@@ -436,13 +416,21 @@ public class Database{
 			Object[] tempObj = new Object[rsMetaData.getColumnCount()];
 			
 			//Reset DefaultTableModel
-			swing.Airline.model.setRowCount(0);
+			swing.Customer.model.setRowCount(0);
 			
 			while(rs.next()){
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){
 					tempObj[i] = rs.getString(i+1);
+					if(i==4){	//When you get membership information,
+						if(rs.getString(i+1).equals("1")){	//true
+							tempObj[i] = "O";
+						}
+						else{	//false
+							tempObj[i] = "X";
+						}
+					}
 				}
-				swing.Airline.model.addRow(tempObj);
+				swing.Customer.model.addRow(tempObj);
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
@@ -498,7 +486,7 @@ public class Database{
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){
 					tempObj[i] = rs.getString(i+1);
 				}
-				swing.Airline.model.addRow(tempObj);
+				swing.Airplane.model.addRow(tempObj);
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
@@ -547,7 +535,7 @@ public class Database{
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){
 					tempObj[i] = rs.getString(i+1);
 				}
-				swing.Airline.model.addRow(tempObj);
+				swing.Flight.model.addRow(tempObj);
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
@@ -599,7 +587,7 @@ public class Database{
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){
 					tempObj[i] = rs.getString(i+1);
 				}
-				swing.Airline.model.addRow(tempObj);
+				swing.Reservation.model.addRow(tempObj);
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());

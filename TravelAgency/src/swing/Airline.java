@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
 import java.util.Vector;
 
 import javax.swing.JButton;
@@ -32,7 +31,7 @@ import main.Database;
  * - {@link #Airline()} : Constructor  <br>
  * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
  * - {@link #Table_init()} : UI of Table and Search Part  <br>
- * - {@link #AddRow()} : Add a New Row  <br>
+ * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
  * - {@link #DelRow()} : Delete Selected Row  <br>
  * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
  * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
@@ -40,16 +39,17 @@ import main.Database;
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 0.3.1 12/01/15
+ * @version 1.0 12/01/15
  * @author Hyunjeong Shim, 김상완, 유란영
  * */
+@SuppressWarnings("serial")
 public class Airline extends JPanel implements ActionListener{
 	//Instance variables
 	//Class id for distinguishing tabs(classes)
 	private final int CLASS_ID = 1;
 	
 	//Search mode constant
-	private final int SEARCH_NONE = 0;
+	private final int SEARCH_NONE = 0;	//For initializing the table rows
 	private final int SEARCH_ALL = 1;
 	private final int SEARCH_ID = 2;
 	private final int SEARCH_NAME = 3;
@@ -66,7 +66,7 @@ public class Airline extends JPanel implements ActionListener{
 	private JLabel lblName;
 	private JLabel lblPhone;
 	private JLabel lblAddress;
-	private JLabel location;
+	//private JLabel location;
 	private JLabel lblCountry;
 	
 	//Font, JScrollPane, JTable
@@ -82,14 +82,18 @@ public class Airline extends JPanel implements ActionListener{
 	private JTextField tfCountry;
 	
 	//JComboBox
-	private JComboBox cbSearch;
+	private JComboBox<String> cbSearch;
 	private JComboBox<String> cbAirlines;
 
-	//Vector, String
-	Vector<String> alColNames;
-	String alCombo[] = {"전체","ID","이름","국가","주소","전화번호"};
-	Vector<String> comboNames;
+	//Vector<String>: Column Names, Airline Name ComboBox Items
+	private Vector<String> alColNames;
+	private Vector<String> comboNames;
+	
+	//String: ComboBox Items, Id for the last id number
+	private String alCombo[] = {"전체","ID","이름","국가","주소","전화번호"};	
 	private String id;
+	
+	//Int: Get Search Mode
 	private int searchMode;
 	
 	//DefaultTableModel
@@ -116,10 +120,10 @@ public class Airline extends JPanel implements ActionListener{
 	
 	/** UI of Enroll/Delete Buttons and Enroll Form */
 	private void Enroll_init(){
-		//Label에 사용할 폰트
+		//Font for Label
 		font = new Font("",Font.BOLD,12);
 		
-		//등록 부분 양식
+		//Enroll Form
 		lblName = new JLabel("* 이        름 : ");
 		lblName.setBounds(80,30,75,20);
 		lblName.setFont(font);
@@ -166,7 +170,6 @@ public class Airline extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e) {
 				if(cbAirlines.getSelectedItem()!=null){
 					String name = cbAirlines.getSelectedItem().toString();
-					System.out.println("Name: "+name);
 					model.setRowCount(0);
 					db.AirlineSelectName(name);
 				}
@@ -188,7 +191,11 @@ public class Airline extends JPanel implements ActionListener{
 		add(btnAlDelete);
 	}
 	
-	/** UI of Table and Search Part */
+	/** 
+	 * UI of Table and Search Part
+	 * @param
+	 * @return
+	 * */
 	private void Table_init(){
 		//Initialize column names
 		alColNames = new Vector<>();
@@ -198,8 +205,16 @@ public class Airline extends JPanel implements ActionListener{
 		alColNames.add("주소");
 		alColNames.add("전화번호");
 		
-		model = new DefaultTableModel(alColNames, 0);
-		db.Table_Initialize(CLASS_ID);
+		model = new DefaultTableModel(alColNames, 0){
+			//Prevent editing cells
+			public boolean isCellEditable(int row, int column){
+				if(column>=0)	return false;
+				else return true;
+			}
+		};
+		//db.Table_Initialize(CLASS_ID);
+		//System.out.println("[Init] Search: "+SEARCH_NONE);
+		db.AirlineSearch(SEARCH_NONE, null);
 		
 		//Create a table
 		airlineTable = new JTable(model);		
@@ -221,15 +236,15 @@ public class Airline extends JPanel implements ActionListener{
 		add(scroll);
 		
 		//ComboBox: Search			
-		cbSearch = new JComboBox(alCombo);
+		cbSearch = new JComboBox<String>(alCombo);
+		cbSearch.setSelectedIndex(0);
 		cbSearch.addActionListener(new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				searchMode = cbSearch.getSelectedIndex();
-				System.out.println("Search Mode: "+searchMode);
+				//System.out.println("Search Mode: "+searchMode);
 			}			
 		});
-		cbSearch.setSelectedIndex(0);
 		cbSearch.setBounds(280, 580, 80, 30);
 		add(cbSearch);
 		
@@ -238,7 +253,7 @@ public class Airline extends JPanel implements ActionListener{
 		tfSearch.setBounds(380, 580, 200, 30);			
 		add(tfSearch);
 		
-		//검색 버튼
+		//Button: Search
 		btnAlSearch = new JButton("검색");
 		btnAlSearch.setBounds(600, 580, 62, 30);
 		btnAlSearch.addActionListener(this);
@@ -264,7 +279,7 @@ public class Airline extends JPanel implements ActionListener{
 		add(location);
 	}*/
 	
-	/** Add a New Row & Update Selected Row*/
+	/** Add a New Row & Update Selected Row */
 	private void AddnUpdateRow(int flag){	
 		//Get text from TextField
 		String name = tfName.getText();
@@ -295,7 +310,6 @@ public class Airline extends JPanel implements ActionListener{
 				cbAirlines.removeAllItems();
 				comboNames = db.AirlineComboNames();
 				for(int i=0;i<comboNames.size();i++){
-					//System.out.println("comboNames: "+comboNames.get(i));
 					cbAirlines.addItem(comboNames.get(i));
 				}
 			}
@@ -381,7 +395,7 @@ public class Airline extends JPanel implements ActionListener{
 			cbSearch.setSelectedIndex(0);
 		}
 	}	
-
+	
 	/** Set the Alignment of the Rows to Center */
 	private void tableCellCenter(JTable t){
 		DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
@@ -416,7 +430,6 @@ public class Airline extends JPanel implements ActionListener{
 	/** Table Mouse Listener (Click, Enter, Exit, Press, Release)*/
 	private class JTableMouseListener implements MouseListener{
 		public void mouseClicked(MouseEvent e) {
-			System.out.println("선택 갯수: "+airlineTable.getSelectedRowCount());
 			//Action when you right-click the column
 			if(e.getButton()==3){
 				//Check if the columns are multi-selected or not
@@ -431,7 +444,6 @@ public class Airline extends JPanel implements ActionListener{
 				else{
 					int row = airlineTable.getSelectedRow();
 					for(int i=0;i<airlineTable.getColumnCount();i++){
-						//System.out.print(model.getValueAt(row, i)+"\t");
 						if(i==0)	id = (String) model.getValueAt(row, i);
 						if(i==1)	tfName.setText((String) model.getValueAt(row, i));
 						else if(i==2)	tfCountry.setText((String) model.getValueAt(row, i));

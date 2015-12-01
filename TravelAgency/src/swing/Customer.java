@@ -18,11 +18,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -31,30 +33,68 @@ import javax.swing.table.TableColumnModel;
 
 import main.Database;
 
-/** Customer UI & Functions */
+/** 
+ * <p><b> Customer Class </b> 
+ * : Customer UI & Functions</p>
+ * 
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #Customer()} : Constructor  <br>
+ * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
+ * - {@link #Table_init()} : UI of Table and Search Part  <br>
+ * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
+ * - {@link #DelRow()} : Delete Selected Row  <br>
+ * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
+ * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
+ * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
+ * <p><b>Another Class</b> <br>
+ * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
+ * 
+ * @version 0.9.2 12/01/15
+ * @author Hyunjeong Shim, 김상완, 유란영
+ * */
 public class Customer extends JPanel implements ActionListener{
+	//Instance variables
+	//Class id for distinguishing tabs(classes)
 	private final int CLASS_ID = 2;
 	
-	private JButton btnCsEnroll;
+	//Search mode constant
+	private final int SEARCH_NONE = 0;	//For initializing the table rows
+	private final int SEARCH_ALL = 1;
+	private final int SEARCH_ID = 2;
+	private final int SEARCH_NAME = 3;
+	private final int SEARCH_COUNTRY = 4;
+	private final int SEARCH_ADDRESS = 5;
+	private final int SEARCH_PHONE = 6;
+	
+	//JButton
+	private JButton btnCsAddnUpdate;
 	private JButton btnCsDelete;
 	private JButton btnCsSearch;
 	
+	//JLabel
 	private JLabel lblName;
 	private JLabel lblPhone;
-	private JLabel lblAddress;
 	private JLabel lblMembership;
 	private JLabel lblPayment;
 	private JLabel lblSeat;
-	private JLabel location;
+	//private JLabel location;
 	
+	//Font, JScrollPane, JTable
 	private Font font;
 	private JScrollPane scroll;
 	private JTable customerTable;
 	
+	//JTextField
 	private JTextField tfName;
 	private JTextField tfPhone;
 	private JTextField tfAddress;
 	private JTextField tfSearch;
+	
+	//JRadioButton: Payment
+	ButtonGroup payment;
+	JRadioButton paymentCash;
+	JRadioButton paymentCredit;
+	JRadioButton paymentCheck;	
 	
 	//JRadioButton: Membership
 	ButtonGroup membership;
@@ -71,23 +111,31 @@ public class Customer extends JPanel implements ActionListener{
 	JRadioButton seatWindow;
 	JRadioButton seatAisle;
 	
-	private JComboBox cbSearch;
-	private JComboBox cbCustomer;
+	//JComboBox<String>: Search options
+	private JComboBox<String> cbSearch;
+	//private JComboBox<String> cbCustomer;
 	
-	//private JCheckBox chBox;
-	
-	//Vector, String
+	//Vector<String>: Column Names
 	Vector<String> csColNames;
-	String csCombo[] = {"ID","이름","주소","전화번호","멤버쉽","결제방법","좌석"};
-	Vector<Vector> data;
 	
+	//String: ComboBox Items, Id for the last id number
+	private String csCombo[] = {"ID","이름","주소","전화번호","멤버쉽","결제방법","좌석"};
+	private String id;
+	
+	//Int: Get Search Mode
+	private int searchMode;
+	
+	//DefaultTableModel
 	public static DefaultTableModel model;
 	
+	//Database Class
 	Database db;
 	
-	/** Customer Constructor 
-	 * @throws SQLException */
-	public Customer() throws SQLException{
+	/** 
+	 * Customer Constructor 
+	 * @param
+	 *  */
+	public Customer(){
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
 		
@@ -96,15 +144,15 @@ public class Customer extends JPanel implements ActionListener{
 		
 		Enroll_init();
 		Table_init();
-		Location();
+		//Location();
 	}
 	
 	/** 등록/삭제 버튼 및 등록 부분 UI */
 	private void Enroll_init(){
-		//Label에 사용할 폰트
+		//Font for Label
 		font = new Font("",Font.BOLD,12);
 		
-		//등록 부분 양식
+		//Enroll Form
 		lblName = new JLabel("* 이        름 : ");
 		lblName.setBounds(80,30,75,20);
 		lblName.setFont(font);
@@ -150,9 +198,29 @@ public class Customer extends JPanel implements ActionListener{
 		lblPayment.setFont(font);
 		add(lblPayment);
 		
-		tfAddress = new JTextField();
-		tfAddress.setBounds(180, 135, 350, 20);
-		add(tfAddress);
+		//Payment Radio Button
+		payment = new ButtonGroup();
+		paymentCash = new JRadioButton("현금");
+		paymentCredit = new JRadioButton("신용카드");
+		paymentCheck = new JRadioButton("체크카드");
+		payment.add(paymentCash);
+		payment.add(paymentCredit);
+		payment.add(paymentCheck);
+		paymentCash.addActionListener(this);
+		paymentCredit.addActionListener(this);
+		paymentCheck.addActionListener(this);
+		paymentCash.setBounds(190, 135, 55, 20);
+		paymentCash.setFont(font);
+		paymentCash.setBackground(Color.LIGHT_GRAY);
+		paymentCredit.setBounds(270, 135, 80, 20);
+		paymentCredit.setFont(font);
+		paymentCredit.setBackground(Color.LIGHT_GRAY);
+		paymentCheck.setBounds(365, 135, 80, 20);
+		paymentCheck.setFont(font);
+		paymentCheck.setBackground(Color.LIGHT_GRAY);
+		add(paymentCash);
+		add(paymentCredit);
+		add(paymentCheck);
 		
 		lblSeat = new JLabel("  선호 좌석 : ");
 		lblSeat.setBounds(80,170,75,20);
@@ -193,67 +261,73 @@ public class Customer extends JPanel implements ActionListener{
 		add(seatAisle);
 		
 		//등록 버튼: 테이블 새로 한 줄 추가
-		btnCsEnroll = new JButton("등록");
-		btnCsEnroll.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnAddRow();					
-			}
-		});
-		btnCsEnroll.setBounds(778, 155, 62, 30);
-		add(btnCsEnroll);
+		btnCsAddnUpdate = new JButton("등록");
+		btnCsAddnUpdate.addActionListener(this);
+		btnCsAddnUpdate.setBounds(778, 155, 62, 30);
+		add(btnCsAddnUpdate);
 		
 		//삭제 버튼: 선택된 테이블 한 줄 삭제
 		btnCsDelete = new JButton("삭제");
-		btnCsDelete.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnDelRow();					
-			}
-		});
+		btnCsDelete.addActionListener(this);
 		btnCsDelete.setBounds(848, 155, 62, 30);
 		add(btnCsDelete);
 	}
 	
-	/** 테이블 및 검색 부분 UI 
-	 * @throws SQLException */
-	private void Table_init() throws SQLException{
-		
-		
+	/** 
+	 * UI of Table and Search Part
+	 * @param
+	 * @return
+	 * */
+	private void Table_init(){
 		//Initialize Column Names
 		csColNames = new Vector<>();
-		//alColNames.add("ch");
 		csColNames.add("ID");
 		csColNames.add("이름");
-		csColNames.add("전화번호");
 		csColNames.add("주소");
+		csColNames.add("전화번호");
 		csColNames.add("멤버쉽");
 		csColNames.add("결제방법");
 		csColNames.add("좌석");
 		
-		//Create DefaultTableModel
-		model = new DefaultTableModel(csColNames, 0);
-		db.Table_Initialize(CLASS_ID);
+		model = new DefaultTableModel(csColNames, 0){
+			//Prevent editing cells
+			public boolean isCellEditable(int row, int column){
+				if(column>=0)	return false;
+				else return true;
+			}
+		};
+		//db.Table_Initialize(CLASS_ID);
+		db.CustomerSearch(SEARCH_NONE, null);
 		
-		//Create a Table with DefaultTableModel
-		customerTable = new JTable(model);		
+		//Create a table
+		customerTable = new JTable(model);
 		
-		//Table Settings
+		//Table settings
+		//Enable auto row sorting
+		customerTable.setAutoCreateRowSorter(true);
+		//Add mouse listener
 		customerTable.addMouseListener(new JTableMouseListener());
-		customerTable.getTableHeader().setReorderingAllowed(false);		//테이블 칼럼 이동 방지 (드래그 앤 드롭)
+		//Fix the column's location
+		customerTable.getTableHeader().setReorderingAllowed(false);		
+		//Enable multiple selection
+		customerTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		
 		tableCellCenter(customerTable);
 		setColumnSize(customerTable);
 		scroll = new JScrollPane(customerTable);
 		scroll.setBounds(70, 200, 850, 360);
 		add(scroll);
-		
-		//CheckBox for the Table
-		/*chBox = new JCheckBox();
-		chBox.setHorizontalAlignment(JLabel.CENTER);
-		customerTable.getColumn("ch").setCellEditor(new DefaultCellEditor(chBox));
-		add(chBox);*/
-		
+
 		//ComboBox: Search			
-		cbSearch = new JComboBox(csCombo);
-		cbSearch.addActionListener(this);
+		cbSearch = new JComboBox<String>(csCombo);
+		cbSearch.setSelectedIndex(0);
+		cbSearch.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchMode = cbSearch.getSelectedIndex();
+				//System.out.println("Search Mode: "+searchMode);
+			}			
+		});
 		cbSearch.setBounds(280, 580, 80, 30);
 		add(cbSearch);
 		
@@ -261,9 +335,8 @@ public class Customer extends JPanel implements ActionListener{
 		tfSearch = new JTextField();
 		tfSearch.setBounds(380, 580, 200, 30);			
 		add(tfSearch);
-		//enroll = new EnrollDialog(new JFrame(),"항공사 등록");
 		
-		//검색 버튼
+		//Button: Search
 		btnCsSearch = new JButton("검색");
 		btnCsSearch.setBounds(600, 580, 62, 30);
 		btnCsSearch.addActionListener(this);
@@ -271,7 +344,7 @@ public class Customer extends JPanel implements ActionListener{
 	}
 	
 	/** 좌표 표시 */
-	public void Location(){
+	/*public void Location(){
 		location = new JLabel("현재 좌표");
 		MouseMotionAdapter ma = new MouseMotionAdapter() {
 			public void mouseMoved(MouseEvent e) {
@@ -287,14 +360,45 @@ public class Customer extends JPanel implements ActionListener{
 		this.addMouseMotionListener(ma);
 		location.setBounds(610, 155, 200, 32);
 		add(location);
+	}*/
+	
+	/** Add a New Row & Update Selected Row */
+	private void AddnUpdateRow(int flag){
+		//Get text and information from TextField
+		String name = tfName.getText();
+		String phone = tfPhone.getText();
+		String address = tfAddress.getText();
+		
+		/*String[] rows = {id,name,phone,address,phone};
+		
+		//Check if essential fields are filled or not
+		if(name.isEmpty() | phone.isEmpty() | member.isEmpty() | address.isEmpty())
+			JOptionPane.showMessageDialog(null, "필수 입력칸을 모두 채워주세요.",
+					"Message",JOptionPane.ERROR_MESSAGE);
+		else{
+			if(flag==0){	//Add a new row
+				db.InsertData(CLASS_ID,rows);
+				model.addRow(rows);
+				cbAirlines.addItem(name);
+			}
+			else{			//Update selected row
+				db.UpdateData(CLASS_ID,rows);
+				JOptionPane.showMessageDialog(null, "수정 되었습니다.",
+						"Message",JOptionPane.OK_OPTION);
+				//Reset button text
+				btnAlAddnUpdate.setText("등록");
+				btnAlDelete.setText("삭제");
+				//Reset ComboBox
+				cbAirlines.removeAllItems();
+				comboNames = db.AirlineComboNames();
+				for(int i=0;i<comboNames.size();i++){
+					cbAirlines.addItem(comboNames.get(i));
+				}
+			}
+		}*/
 	}
 	
-	void btnAddRow(){
-		DefaultTableModel model = (DefaultTableModel)customerTable.getModel();
-		model.addRow(new String[]{"","","","",""});
-	}
-	
-	void btnDelRow(){
+	private void DelRow(){
 		int row = customerTable.getSelectedRow();
 		if(row<0) return;
 		DefaultTableModel model = (DefaultTableModel)customerTable.getModel();
@@ -305,22 +409,8 @@ public class Customer extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();	//선택된 버튼 가져오기
 		
-		if(source == "btnCsEnroll"){
-			setVisible(false);
-		}
 		
 	}
-	
-	
-	/*DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
-		public Component getTableCellRendererComponent
-		(JTable t, Object value, boolean isSelected, boolean hasFocus, int row, int column){
-			chBox.setSelected(((Boolean)value).booleanValue());
-			//chBox.set
-			
-			return chBox;				
-		}
-	};*/
 	
 	/** 테이블 내용 가운데 정렬 */
 	private void tableCellCenter(JTable t){
@@ -343,8 +433,8 @@ public class Customer extends JPanel implements ActionListener{
 		
 		tcm.getColumn(0).setPreferredWidth(40);
 		tcm.getColumn(1).setPreferredWidth(60);
-		tcm.getColumn(2).setPreferredWidth(120);
-		tcm.getColumn(3).setPreferredWidth(400);
+		tcm.getColumn(2).setPreferredWidth(300);
+		tcm.getColumn(3).setPreferredWidth(120);
 		tcm.getColumn(4).setPreferredWidth(70);
 		tcm.getColumn(5).setPreferredWidth(100);
 		tcm.getColumn(6).setPreferredWidth(100);
@@ -361,10 +451,7 @@ public class Customer extends JPanel implements ActionListener{
 			JTable jtable = (JTable)e.getSource();
 			int row = jtable.getSelectedRow();
 			int col = jtable.getSelectedColumn();
-			DefaultTableModel model = (DefaultTableModel)jtable.getModel();
-			
-			System.out.println(model.getValueAt(row, 0));	//눌려진 행의 부분에서 0번째 값 출력
-			System.out.println(model.getValueAt(row, col));	//눌려진 행과 열에 해당하는 선택된 데이터 하나 출력			
+			DefaultTableModel model = (DefaultTableModel)jtable.getModel();		
 		}
 
 		@Override
