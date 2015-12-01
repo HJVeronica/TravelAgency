@@ -13,7 +13,7 @@ import java.util.Vector;
  * Connect to TravelAgency Database 
  * Execute Querys
  * 
- * @version 0.9.1 12/01/15
+ * @version 0.9.4 12/02/15
  * @author Hyunjeong Shim, 김상완, 유란영
  */
 public class Database{
@@ -24,7 +24,6 @@ public class Database{
 	private String sql = "";
 	private Statement st = null;
 	private ResultSet rs = null;
-	//private int result;
 	private Vector<String> line;
 	private PreparedStatement ps = null;
 	
@@ -199,6 +198,9 @@ public class Database{
 	 * */
 	public String getID(int TabNum){
 		String id = null;
+		int lastId = 0;
+		StringTokenizer stoken = null;
+		
 		try {
 			switch(TabNum){
 				case 1:		//Airline Class 
@@ -208,25 +210,46 @@ public class Database{
 					//Move the cursor to the last row
 					rs.last();
 					id = rs.getString(1);
-					System.out.println("last id: "+id);
+					//System.out.println("last id: "+id);
 					
 					//Separate tokens (A+number)
-					StringTokenizer st = new StringTokenizer(id,"A");
-					id = st.nextToken();
+					stoken = new StringTokenizer(id,"A");
+					id = stoken.nextToken();
 					
 					//String -> Integer (To increase the number of id)
-					int lastId = Integer.parseInt(id);
+					lastId = Integer.parseInt(id);
 					lastId++;
 					//Intger -> String (To use the number of id for a new row)
 					if(lastId<10)
 						id = "0"+String.valueOf(lastId);
 					else id = String.valueOf(lastId);
 					id = "A"+id;
-					System.out.println("id: "+id);					
+					//System.out.println("id: "+id);					
 				
 					break;
 				case 2: 	//Customer Class
 					sql = "select cId from customer;";
+					
+					rs = st.executeQuery(sql);
+					//Move the cursor to the last row
+					rs.last();
+					id = rs.getString(1);
+					//System.out.println("last id: "+id);
+					
+					//Separate tokens (C+number)
+					stoken = new StringTokenizer(id,"C");
+					id = stoken.nextToken();
+					
+					//String -> Integer (To increase the number of id)
+					lastId = Integer.parseInt(id);
+					lastId++;
+					//Intger -> String (To use the number of id for a new row)
+					if(lastId<10)
+						id = "0"+String.valueOf(lastId);
+					else id = String.valueOf(lastId);
+					id = "C"+id;
+					//System.out.println("id: "+id);					
+				
 					break;
 				case 3: break;
 				case 4: break;
@@ -249,12 +272,26 @@ public class Database{
 		try {
 			switch(TabNum){
 				case 1:		//Airline Class 
-					sql = "insert into airline values('"+rows[0]+"','"+rows[1]
-							+"','"+rows[2]+"','"+rows[3]+"','"+rows[4]+"');";
-					st.executeUpdate(sql);
+					sql = "insert into airline values(?,?,?,?,?);";
+					ps = conn.prepareStatement(sql);
+					for(int i=0; i<rows.length; i++)						
+						ps.setString(i+1, rows[i]);
+					ps.executeUpdate();
 					break;
 				case 2: 	//Customer Class
-					sql = "";
+					sql = "insert into customer values(?,?,?,?,?,?,?);";
+					ps = conn.prepareStatement(sql);
+					System.out.println("Length: "+rows.length);
+					for(int i=0; i<rows.length; i++){
+						if(i==4){
+							if(rows[i].equals("X"))
+								ps.setInt(i+1, 0);
+							else
+								ps.setInt(i+1, 1);
+						}
+						else ps.setString(i+1, rows[i]);
+					}
+					ps.executeUpdate();
 					break;
 				case 3: break;
 				case 4: break;
@@ -281,7 +318,10 @@ public class Database{
 					ps.executeUpdate();				
 					break;
 				case 2: 	//Customer Class
-					sql = "";					
+					sql = "delete from customer where cId=?";					
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, id);
+					ps.executeUpdate();				
 					break;
 				case 3: break;
 				case 4: break;
@@ -301,12 +341,26 @@ public class Database{
 					ps = conn.prepareStatement(sql);
 					for(int i=0;i<rows.length;i++)
 						ps.setString(i+1, rows[i]);
-					ps.setString(6, rows[0]);
+					ps.setString(rows.length+1, rows[0]);
 					ps.executeUpdate();	
-
 					break;
 				case 2: 	//Customer Class
-					sql = "";
+					sql = "update customer set cId=?,name=?,address=?,"
+							+ "phone=?,membership=?,"
+							+ "payment_preference=?,seat=? where cId=?";
+					ps = conn.prepareStatement(sql);
+					for(int i=0;i<rows.length;i++){
+						System.out.println(i+1+" rows["+i+"]: "+rows[i]);
+						if(i==4){
+							if(rows[i].equals("X"))
+								ps.setInt(i+1, 0);
+							else
+								ps.setInt(i+1, 1);
+						}
+						else ps.setString(i+1, rows[i]);
+					}
+					ps.setString(rows.length+1, rows[0]);
+					ps.executeUpdate();	
 					break;
 				case 3: break;
 				case 4: break;
@@ -391,21 +445,61 @@ public class Database{
 					rs = st.executeQuery(sql);
 					break;
 				case 1:		//SEARCH_ALL 
+					String member = null;
+					if(keyWord.equals("x") || keyWord.equals("o")){
+						if(keyWord.equals("x")){
+							member = "0";
+						}
+						else if(keyWord.equals("o")){
+							member = "1";
+						}
+						sql = "select * from customer where cId like '%"+keyWord+"%'"
+								+ " or name like '%"+keyWord+"%'"+" or address like '%"+keyWord+"%'"
+								+ " or phone like '%"+keyWord+"%'"+" or membership like '%"+member+"%'"
+								+ " or payment_preference like '%"+keyWord+"%'"
+								+ " or seat like '%"+keyWord+"%'";
+					}
+					else{
+						sql = "select * from customer where cId like '%"+keyWord+"%'"
+								+ " or name like '%"+keyWord+"%'"+" or address like '%"+keyWord+"%'"
+								+ " or phone like '%"+keyWord+"%'"
+								+ " or payment_preference like '%"+keyWord+"%'"
+								+ " or seat like '%"+keyWord+"%'";
+					}
 					
+					rs = st.executeQuery(sql);
 					break;
 				case 2:		//SEARCH_ID
+					sql = "select * from customer where cId like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 				case 3:		//SEARCH_NAME
+					sql = "select * from customer where name like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 				case 4:		//SEARCH_ADDRESS
+					sql = "select * from customer where address like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 				case 5:		//SEARCH_PHONE
+					sql = "select * from customer where phone like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 				case 6:		//SEARCH_MEMBERSHIP
+					if(keyWord.equals("x"))
+						keyWord = "0";
+					else if(keyWord.equals("o"))
+						keyWord = "1";
+					sql = "select * from customer where membership like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 				case 7:		//SEARCH_PAYMENT
+					sql = "select * from customer where payment_preference like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 				case 8:		//SEARCH_SEAT
+					sql = "select * from customer where seat like '%"+keyWord+"%'";
+					rs = st.executeQuery(sql);
 					break;
 			}
 			

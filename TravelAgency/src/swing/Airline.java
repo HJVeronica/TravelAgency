@@ -39,7 +39,7 @@ import main.Database;
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 1.0 12/01/15
+ * @version 1.1 12/02/15
  * @author Hyunjeong Shim, 김상완, 유란영
  * */
 @SuppressWarnings("serial")
@@ -66,7 +66,6 @@ public class Airline extends JPanel implements ActionListener{
 	private JLabel lblName;
 	private JLabel lblPhone;
 	private JLabel lblAddress;
-	//private JLabel location;
 	private JLabel lblCountry;
 	
 	//Font, JScrollPane, JTable
@@ -115,7 +114,6 @@ public class Airline extends JPanel implements ActionListener{
 		
 		Enroll_init();
 		Table_init();
-		//Location();
 	}
 	
 	/** UI of Enroll/Delete Buttons and Enroll Form */
@@ -212,8 +210,8 @@ public class Airline extends JPanel implements ActionListener{
 				else return true;
 			}
 		};
-		//db.Table_Initialize(CLASS_ID);
-		//System.out.println("[Init] Search: "+SEARCH_NONE);
+
+		//Initialize DefaultTableModel
 		db.AirlineSearch(SEARCH_NONE, null);
 		
 		//Create a table
@@ -242,7 +240,6 @@ public class Airline extends JPanel implements ActionListener{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				searchMode = cbSearch.getSelectedIndex();
-				//System.out.println("Search Mode: "+searchMode);
 			}			
 		});
 		cbSearch.setBounds(280, 580, 80, 30);
@@ -260,37 +257,18 @@ public class Airline extends JPanel implements ActionListener{
 		add(btnAlSearch);
 	}
 	
-	/** Show the Coordinate of Cursor */
-	/*public void Location(){
-		location = new JLabel("현재 좌표");
-		MouseMotionAdapter ma = new MouseMotionAdapter() {
-			public void mouseMoved(MouseEvent e) {
-                // 마우스 좌표 얻어오기
-                int x = e.getX();
-                int y = e.getY();
-                String str = "x좌표:" + x + ",y좌표:" + y;
-
-                // Label에 문자열 넣기
-                location.setText(str);
-            }
-		};
-		this.addMouseMotionListener(ma);
-		location.setBounds(610, 155, 200, 32);
-		add(location);
-	}*/
-	
 	/** Add a New Row & Update Selected Row */
 	private void AddnUpdateRow(int flag){	
 		//Get text from TextField
 		String name = tfName.getText();
 		String phone = tfPhone.getText();
 		String country = tfCountry.getText();
-		System.out.println("Country: "+country);
 		String address = tfAddress.getText();
+		
 		String[] rows = {id,name,country,address,phone};
 		
 		//Check if essential fields are filled or not
-		if(name.isEmpty() | phone.isEmpty() | country.isEmpty() | address.isEmpty())
+		if(name.isEmpty() || phone.isEmpty() || country.isEmpty() || address.isEmpty())
 			JOptionPane.showMessageDialog(null, "필수 입력칸을 모두 채워주세요.",
 					"Message",JOptionPane.ERROR_MESSAGE);
 		else{
