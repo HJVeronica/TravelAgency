@@ -201,6 +201,22 @@ public class Database{
 		return comboNames;
 	}
 	
+	public Vector<String> CountryComboNames(){
+		Vector<String> comboNames = new Vector<String>();
+		sql = "select name from airport;";
+		try {
+			rs = st.executeQuery(sql);
+			comboNames.add("º±≈√");
+		
+			while(rs.next()){
+				comboNames.add(rs.getString(1));
+			}
+		} catch (SQLException e) {
+			System.out.println("Connection Error: "+e.getStackTrace());
+		}
+		return comboNames;
+	}
+	
 	/** 
 	 * Show the Tuples That Includes the Selected Airline Name 
 	 * @param String name Selected item
@@ -761,7 +777,26 @@ public class Database{
 		try{
 			switch(searchMode){
 				case 0: 	//SEARCH_NONE: Update Table
-					sql = "select * from Flight";
+					//Create views to get airport names by code
+					sql = "create or replace view departcode as "
+							+ "select code,name from airport;";
+					st.executeUpdate(sql);
+					
+					sql = "create or replace view arrivecode as "
+							+ "select code,name from airport;";
+					st.executeUpdate(sql);
+					
+					//Create a view to get aircraft by pid
+					
+					sql = "create or replace view flightview as select ft.flight_name, ap.aircraft, "
+						+ "dc.name as departure, ac.name as arrival, "
+						+ "ft.dep_date, ft.dep_time, ft.arr_date, ft.arr_time, ft.`schedule`, ft.price "
+						+ "from flight as ft inner join airplane as ap inner join arrivecode as ac "
+						+ "inner join departcode as dc "
+						+ "where ft.pId = ap.pId and dc.code = ft.departure and ac.code = ft.arrival;";
+					st.executeUpdate(sql);
+					
+					sql = "select * from flightview order by flight_name;";					
 					rs = st.executeQuery(sql);
 					break;
 				case 1:		//SEARCH_ALL				

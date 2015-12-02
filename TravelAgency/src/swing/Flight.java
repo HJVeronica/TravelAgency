@@ -7,26 +7,53 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
 import main.Database;
 
-/** Flight UI & Functions */
+/** 
+ * <p><b> Flight Class </b> 
+ * : Flight UI & Functions</p>
+ * 
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #Airline()} : Constructor  <br>
+ * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
+ * - {@link #Table_init()} : UI of Table and Search Part  <br>
+ * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
+ * - {@link #DelRow()} : Delete Selected Row  <br>
+ * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
+ * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
+ * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
+ * <p><b>Another Class</b> <br>
+ * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
+ * 
+ * @version 0.9.8 12/03/15
+ * @author 심현정, 김상완, 유란영
+ * */
 public class Flight extends JPanel implements ActionListener{
 	private final int CLASS_ID = 4;
 	
@@ -45,18 +72,17 @@ public class Flight extends JPanel implements ActionListener{
 	//Font, JScrollPane, JTable
 	private Font font;
 	private JScrollPane scroll;
-	private JTable airlineTable;
-	
-	//JTextField
-	private JTextField TeStartAirport;
-	private JTextField TeArriveAirport;
+	private JTable flightTable;
 	
 	//JComboBox
-	private JComboBox CoStartDate;
-	private JComboBox CoStarttime;
-	private JComboBox CoArriveDate;
-	private JComboBox CoArriveTime;
-
+	private JComboBox comboDeparture;
+	private JComboBox comboArrival;
+	
+	//JSpinner
+	private JSpinner departDate;
+	private JSpinner departTime;
+	private JSpinner arriveDate;
+	private JSpinner arriveTime;
 		
 	//JRadioButton
 	private JRadioButton RaPassStop1;
@@ -67,11 +93,13 @@ public class Flight extends JPanel implements ActionListener{
 		
 	//Vector, String
 	Vector<String> FlightColNames;
-	String alCombo[] = {"항공편명","비행기ID","출발지공항","도착지공항",
-			"출발날짜","출발시간","도착날짜","도착시간","스케줄","요금"};
+	Vector<String> comboDepartCountry;
+	Vector<String> comboArriveCountry;
 		
 	//DefaultTableModel
 	public static DefaultTableModel model = null;
+	
+	DateFormat df = null;
 	
 	/** Flight Constructor 
 	 * @throws SQLException */
@@ -95,29 +123,75 @@ public class Flight extends JPanel implements ActionListener{
 		LaStartAirport.setFont(font);
 		add(LaStartAirport);
 		
-		TeStartAirport = new JTextField();
-		TeStartAirport.setBounds(180, 30, 200, 20);
-		add(TeStartAirport);
+		//ComboBox: Airline Names (Statistics)
+		comboDepartCountry = new Vector<String>();
+		comboDepartCountry = db.CountryComboNames();
+		comboDeparture = new JComboBox<String>(comboDepartCountry);
+		comboDeparture.setSelectedItem(0);
+		comboDeparture.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(comboDeparture.getSelectedItem()!=null){
+					String name = comboDeparture.getSelectedItem().toString();
+					//db.CustomerSelectName(name);
+				}
+			}			
+		});
+		comboDeparture.setBounds(180, 30, 200, 20);
+		add(comboDeparture);
 		
 		LaArriveAirport = new JLabel("도착지 공항 : ");
 		LaArriveAirport.setBounds(400,30,85,20);
 		LaArriveAirport.setFont(font);
 		add(LaArriveAirport);
 		
-		TeArriveAirport = new JTextField();
-		TeArriveAirport.setBounds(500, 30, 200, 20);
-		add(TeArriveAirport);
+		
+		//ComboBox: Airline Names (Statistics)
+		comboArriveCountry = new Vector<String>();
+		comboArriveCountry = db.CountryComboNames();
+		comboArrival = new JComboBox<String>(comboArriveCountry);
+		comboArrival.setSelectedItem(0);
+		comboArrival.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(comboDeparture.getSelectedItem()!=null){
+					String name = comboArrival.getSelectedItem().toString();
+					//db.CustomerSelectName(name);
+				}
+			}			
+		});
+		comboArrival.setBounds(500, 30, 200, 20);
+		add(comboArrival);		
 		
 		LaStartDate = new JLabel("출발 날짜 : ");
 		LaStartDate.setBounds(80,70,85,20);
 		LaStartDate.setFont(font);
 		add(LaStartDate);
 		
-		CoStartDate = new JComboBox();
-		CoStartDate.addItem("2015-11-30");
-		CoStartDate.addActionListener(this);
-		CoStartDate.setBounds(180, 70, 200, 20);
-		add(CoStartDate);
+		final SpinnerDateModel spModel1 = new SpinnerDateModel();
+		departDate = new JSpinner(spModel1);
+		df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		JSpinner.DateEditor editor = new JSpinner.DateEditor(departDate, "yyyy-MM-dd");
+		JFormattedTextField ftf = editor.getTextField();
+		ftf.setEditable(false);		
+		ftf.setBackground(Color.WHITE);
+		departDate.setEditor(editor);
+		departDate.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Date value = (Date) spModel1.getValue();
+				Date next = (Date) spModel1.getNextValue();
+				if(value != null && next != null){
+					System.out.println("value: "+ df.format(value)+"\t"
+							+ "next: "+df.format(next));
+				}
+			}
+			
+		});
+		departDate.setBounds(180, 70, 200, 20);
+		departDate.setFont(font);
+		add(departDate);		
 		
 		
 		LaStartTime = new JLabel("출발 시간 : ");
@@ -125,36 +199,94 @@ public class Flight extends JPanel implements ActionListener{
 		LaStartTime.setFont(font);
 		add(LaStartTime);
 		
-		CoStarttime = new JComboBox();
-		CoStarttime.addItem("09:20");
-		CoStarttime.addActionListener(this);
-		CoStarttime.setBounds(180, 110, 200, 20);
-		add(CoStarttime);
+		final SpinnerDateModel spModel2 = new SpinnerDateModel();
+		spModel2.setCalendarField(Calendar.MINUTE);
+		
+		departTime = new JSpinner(spModel2);
+		departTime.setEditor(new JSpinner.DateEditor(departTime, "HH:mm"));
+		JFormattedTextField ftf2 = editor.getTextField();
+		ftf2.setEditable(false);	
+		ftf2.setBackground(Color.WHITE);
+		
+		departTime.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Date value = (Date) spModel2.getValue();
+				Date next = (Date) spModel2.getNextValue();
+				if(value != null && next != null){
+					System.out.println("value: "+ df.format(value)+"\t"
+							+ "next: "+df.format(next));
+				}
+			}
+			
+		});
+		departTime.setBounds(180, 110, 200, 20);
+		departTime.setFont(font);
+		add(departTime);
 		
 		LaArriveDate = new JLabel("도착 날짜 : ");
 		LaArriveDate.setBounds(400,70,85,20);
 		LaArriveDate.setFont(font);
 		add(LaArriveDate);
 		
-		CoArriveDate = new JComboBox();
-		CoArriveDate.addItem("2015-11-31");
-		CoArriveDate.addActionListener(this);
-		CoArriveDate.setBounds(500, 70, 200, 20);
-		add(CoArriveDate);
+		final SpinnerDateModel spModel3 = new SpinnerDateModel();
+		arriveDate = new JSpinner(spModel3);
+		df = new SimpleDateFormat("yyyy-MM-dd");
+		
+		JSpinner.DateEditor editor2 = new JSpinner.DateEditor(arriveDate, "yyyy-MM-dd");
+		JFormattedTextField ftf3 = editor.getTextField();
+		ftf3.setEditable(false);	
+		ftf3.setBackground(Color.WHITE);
+		arriveDate.setEditor(editor2);
+		arriveDate.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Date value = (Date) spModel3.getValue();
+				Date next = (Date) spModel3.getNextValue();
+				if(value != null && next != null){
+					System.out.println("value: "+ df.format(value)+"\t"
+							+ "next: "+df.format(next));
+				}
+			}
+			
+		});
+		arriveDate.setBounds(500, 70, 200, 20);
+		arriveDate.setFont(font);
+		add(arriveDate);
 		
 		LaArriveTime = new JLabel("도착 시간 : ");
 		LaArriveTime.setBounds(400,110,85,20);
 		LaArriveTime.setFont(font);
 		add(LaArriveTime);
 		
-		CoArriveTime = new JComboBox();
-		CoArriveTime.addItem("06:30");
-		CoArriveTime.addActionListener(this);
-		CoArriveTime.setBounds(500, 110, 200, 20);
-		add(CoArriveTime);
+		final SpinnerDateModel spModel4 = new SpinnerDateModel();
+		spModel2.setCalendarField(Calendar.MINUTE);
+		
+		arriveTime = new JSpinner(spModel4);
+		arriveTime.setEditor(new JSpinner.DateEditor(arriveTime, "HH:mm"));
+
+		JFormattedTextField ftf4 = editor.getTextField();
+		ftf4.setEditable(false);	
+		ftf4.setBackground(Color.WHITE);
+		
+		arriveTime.addChangeListener(new ChangeListener(){
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				Date value = (Date) spModel4.getValue();
+				Date next = (Date) spModel4.getNextValue();
+				if(value != null && next != null){
+					System.out.println("value: "+ df.format(value)+"\t"
+							+ "next: "+df.format(next));
+				}
+			}
+			
+		});
+		arriveTime.setBounds(500, 110, 200, 20);
+		arriveTime.setFont(font);
+		add(arriveTime);
 		
 		LaPassStop = new JLabel("경유 횟수 : ");
-		LaPassStop.setBounds(80,160,85,20);
+		LaPassStop.setBounds(80,155,85,20);
 		LaPassStop.setFont(font);
 		add(LaPassStop);
 		
@@ -168,16 +300,16 @@ public class Flight extends JPanel implements ActionListener{
 		RaPassStop1.setBackground(Color.LIGHT_GRAY);
 		RaPassStop2.setBackground(Color.LIGHT_GRAY);
 		RaPassStop3.setBackground(Color.LIGHT_GRAY);
-		RaPassStop1.setBounds(180,160,55,20);
-		RaPassStop2.setBounds(250,160,50,20);
-		RaPassStop3.setBounds(300,160,50,20);
+		RaPassStop1.setBounds(180,155,55,20);
+		RaPassStop2.setBounds(250,155,50,20);
+		RaPassStop3.setBounds(300,155,50,20);
 		add(RaPassStop1);
 		add(RaPassStop2);
 		add(RaPassStop3);
 				
 		//검색 버튼
 		btnAlSearch = new JButton("검색");
-		btnAlSearch.setBounds(848, 155, 62, 20);
+		btnAlSearch.setBounds(848, 155, 62, 30);
 		btnAlSearch.addActionListener(this);
 		add(btnAlSearch);
 		
@@ -186,9 +318,8 @@ public class Flight extends JPanel implements ActionListener{
 	private void Table_init(){
 		//Initialize Column Names
 		FlightColNames = new Vector<>();
-		//alColNames.add("ch");
 		FlightColNames.add("항공편명");
-		FlightColNames.add("비행기ID");
+		FlightColNames.add("비행기 제작사");
 		FlightColNames.add("출발지 공항");
 		FlightColNames.add("도착지 공항");
 		FlightColNames.add("출발 날짜");
@@ -198,19 +329,34 @@ public class Flight extends JPanel implements ActionListener{
 		FlightColNames.add("스케줄");
 		FlightColNames.add("요금");
 		
-		model = new DefaultTableModel(FlightColNames, 0);
-		//db.Table_Initialize(CLASS_ID);
+		model = new DefaultTableModel(FlightColNames, 0){
+			//Prevent editing cells
+			public boolean isCellEditable(int row, int column){
+				if(column>=0)	return false;
+				else return true;
+			}
+		};
+
+		//Initialize DefaultTableModel
+		db.FlightSearch(0, null);
 		
-		//Create a Table with Data and Column Names
-		airlineTable = new JTable(model);		
+		//Create a table
+		flightTable = new JTable(model);		
 		
-		//Table Settings
-		airlineTable.addMouseListener(new JTableMouseListener());
-		airlineTable.getTableHeader().setReorderingAllowed(false);		//테이블 칼럼 이동 방지
-		tableCellCenter(airlineTable);
-		setColumnSize(airlineTable);
-		scroll = new JScrollPane(airlineTable);
-		scroll.setBounds(70, 200, 850, 360);
+		//Table settings
+		//Enable auto row sorting
+		flightTable.setAutoCreateRowSorter(true);
+		//Add mouse listener
+		flightTable.addMouseListener(new JTableMouseListener());
+		//Fix the column's location
+		flightTable.getTableHeader().setReorderingAllowed(false);		
+		//Enable multiple selection
+		flightTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		
+		tableCellCenter(flightTable);
+		setColumnSize(flightTable);
+		scroll = new JScrollPane(flightTable);
+		scroll.setBounds(70, 200, 850, 400);
 		add(scroll);
 	}
 	@Override

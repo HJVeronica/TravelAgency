@@ -174,8 +174,7 @@ public class Reservation extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e) {
 				if(cbCustomer2.getSelectedItem()!=null){
 					String name = cbCustomer2.getSelectedItem().toString();
-					model.setRowCount(0);
-					db.CustomerSelectName(name);
+					//db.CustomerSelectName(name);
 				}
 			}			
 		});
@@ -208,8 +207,7 @@ public class Reservation extends JPanel implements ActionListener{
 			public void actionPerformed(ActionEvent e) {
 				if(cbFlight.getSelectedItem()!=null){
 					String name = cbFlight.getSelectedItem().toString();
-					model.setRowCount(0);
-					db.CustomerSelectName(name);
+					//db.CustomerSelectName(name);
 				}
 			}			
 		});
