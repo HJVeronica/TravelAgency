@@ -1,5 +1,6 @@
 package swing;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -12,10 +13,13 @@ import java.util.Date;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -49,7 +53,7 @@ import main.Database;
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 0.9.7 12/02/15
+ * @version 0.9.8 12/03/15
  * @author 심현정, 김상완, 유란영
  * */
 @SuppressWarnings("serial")
@@ -73,6 +77,7 @@ public class Reservation extends JPanel implements ActionListener{
 	private JButton btnRvDelete;
 	private JButton btnRvSearch;
 	private JButton btnRvSearch2;
+	private JButton btnRvTop10;
 	
 	//JLabel
 	private JLabel lblCustomer;
@@ -319,6 +324,12 @@ public class Reservation extends JPanel implements ActionListener{
 		cbCustomer.setBounds(75, 210, 130, 20);
 		add(cbCustomer);
 		
+		//btnRvTop10 Button
+		btnRvTop10 = new JButton("Top 10");
+		btnRvTop10.addActionListener(this);
+		btnRvTop10.setBounds(680, 200, 80, 30);
+		add(btnRvTop10);
+		
 		//등록 버튼: 테이블 새로 한 줄 추가
 		btnRvAddnUpdate = new JButton("등록");
 		btnRvAddnUpdate.addActionListener(this);
@@ -472,6 +483,10 @@ public class Reservation extends JPanel implements ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();	//선택된 버튼 가져오기
 		
+		if(source.equals(btnRvTop10)){
+			Dialog d = new Dialog();
+			d.dialog.setVisible(true);
+		}
 		
 	}
 	
@@ -505,6 +520,35 @@ public class Reservation extends JPanel implements ActionListener{
 		for(int i=0;i<tcm.getColumnCount();i++){
 			tcm.getColumn(i).setResizable(false);
 		}
+	}
+	
+	private class Dialog{
+		JList<String> list;
+		JButton btnOk = new JButton("OK");
+		JDialog dialog = new JDialog();
+		
+		Dialog(){
+			setLayout(new BorderLayout());
+			Vector<String> str = db.SelectTop10();
+			list = new JList<String>(str);
+			list.setCellRenderer(new DefaultListCellRenderer(){
+				public int getHorizontalAlignment(){
+					return CENTER;
+				}
+			});
+			dialog.add(list,BorderLayout.CENTER);
+			dialog.add(btnOk,BorderLayout.SOUTH);
+			dialog.setSize(100,250);
+			dialog.setLocation(700, 200);
+			
+			btnOk.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					dialog.setVisible(false);
+				}
+			});
+		}
+		
 	}
 
 	/** Table Mouse Listener (Click, Enter, Exit, Press, Release)*/

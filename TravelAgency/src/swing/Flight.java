@@ -34,33 +34,34 @@ public class Flight extends JPanel implements ActionListener{
 	private JButton btnAlSearch;
 	
 	//JLabel
-		private JLabel LaStartAirport;
-		private JLabel LaStartDate;
-		private JLabel LaStartTime;
-		private JLabel LaArriveAirport;
-		private JLabel LaArriveDate;
-		private JLabel LaArriveTime;
-		private JLabel LaPassStop;
+	private JLabel LaStartAirport;
+	private JLabel LaStartDate;
+	private JLabel LaStartTime;
+	private JLabel LaArriveAirport;
+	private JLabel LaArriveDate;
+	private JLabel LaArriveTime;
+	private JLabel LaPassStop;
 		
 	//Font, JScrollPane, JTable
-		private Font font;
-		private JScrollPane scroll;
-		private JTable airlineTable;
+	private Font font;
+	private JScrollPane scroll;
+	private JTable airlineTable;
 	
 	//JTextField
-		private JTextField TeStartAirport;
-		private JTextField TeArriveAirport;
-		
+	private JTextField TeStartAirport;
+	private JTextField TeArriveAirport;
+	
 	//JComboBox
-		private JComboBox CoStartDate;
-		private JComboBox CoStarttime;
-		private JComboBox CoArriveDate;
-		private JComboBox CoArriveTime;
+	private JComboBox CoStartDate;
+	private JComboBox CoStarttime;
+	private JComboBox CoArriveDate;
+	private JComboBox CoArriveTime;
+
 		
 	//JRadioButton
-		private JRadioButton RaPassStop1;
-		private JRadioButton RaPassStop2;
-		private JRadioButton RaPassStop3;
+	private JRadioButton RaPassStop1;
+	private JRadioButton RaPassStop2;
+	private JRadioButton RaPassStop3;
 		
 	Database db = null;
 		

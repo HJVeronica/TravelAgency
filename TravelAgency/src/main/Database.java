@@ -225,6 +225,28 @@ public class Database{
 		}
 	}
 	
+	public Vector<String> SelectTop10(){
+		Vector<String> str = new Vector<String>();
+		
+		sql = "select cs.name "
+			+ "from reservation rv, customer cs "
+			+ "where rv.cId=cs.cId "
+			+ "group by rv.cid "
+			+ "order by count(*) desc "
+			+ "limit 10;";
+		try {
+			rs = st.executeQuery(sql);
+			
+			while(rs.next()){
+				str.add(rs.getString(1));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return str;
+	}
+	
 	/** 
 	 * Get the Last ID to Insert Rows to DB 
 	 * @param int TabNum Each class id for distinguishing classes
