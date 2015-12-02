@@ -1,4 +1,5 @@
 package main;
+import java.awt.event.ActionEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,13 +10,27 @@ import java.sql.Statement;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import javax.swing.JTable;
+
 /** 
- * Connect to TravelAgency Database 
- * Execute Querys
+ * <p><b> Database Class </b> 
+ * : Connect to TravelAgency Database & Execute Queries</p>
  * 
- * @version 0.9.4 12/02/15
- * @author Hyunjeong Shim, 김상완, 유란영
- */
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #Customer()} : Constructor  <br>
+ * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
+ * - {@link #Table_init()} : UI of Table and Search Part  <br>
+ * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
+ * - {@link #DelRow()} : Delete Selected Row  <br>
+ * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
+ * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
+ * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
+ * <p><b>Another Class</b> <br>
+ * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
+ * 
+ * @version 0.9.5 12/02/15
+ * @author 심현정, 김상완, 유란영
+ * */
 public class Database{
 	private final String URL = "jdbc:mysql://localhost:3306/travelagency";
 	private final String USER = "root";
@@ -42,7 +57,7 @@ public class Database{
 	 * @param int TabNum Each class id for distinguishing classes
 	 * @return
 	 * */
-	public void Table_Initialize(int TabNum){
+	/*public void Table_Initialize(int TabNum){
 		try {
 			switch(TabNum){
 				case 1: 	//Airline Table Initialize
@@ -125,19 +140,22 @@ public class Database{
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
 		}
-	}
+	}*/
 	
 	/** 
 	 * Get Airline Names to Add ComboBox Items 
-	 * @param
+	 * @param int TabNum Each class id for distinguishing classes
 	 * @return Return string vector which contains airline names 
 	 * */
-	public Vector<String> AirlineComboNames(){
+	public Vector<String> AirlineComboNames(int TabNum){
 		Vector<String> comboNames = new Vector<String>();
 		sql = "select name from airline;";
 		try {
 			rs = st.executeQuery(sql);
-			comboNames.add("전체");
+			if(TabNum == 1)
+				comboNames.add("전체");
+			else
+				comboNames.add("선택");
 		
 			while(rs.next()){
 				comboNames.add(rs.getString(1));
@@ -151,6 +169,7 @@ public class Database{
 	/** 
 	 * Show the Tuples That Includes the Selected Airline Name 
 	 * @param String name Selected item
+	 * @param int TabNum Each class id for distinguishing classes
 	 * @return 
 	 * */
 	public void AirlineSelectName(String name){
@@ -204,13 +223,14 @@ public class Database{
 		try {
 			switch(TabNum){
 				case 1:		//Airline Class 
+					System.out.println("Airline get Id");
 					sql = "select aId from airline";
 					
 					rs = st.executeQuery(sql);
 					//Move the cursor to the last row
 					rs.last();
 					id = rs.getString(1);
-					//System.out.println("last id: "+id);
+					System.out.println("Airline current last id: "+id);
 					
 					//Separate tokens (A+number)
 					stoken = new StringTokenizer(id,"A");
@@ -223,18 +243,19 @@ public class Database{
 					if(lastId<10)
 						id = "0"+String.valueOf(lastId);
 					else id = String.valueOf(lastId);
-					id = "A"+id;
-					//System.out.println("id: "+id);					
+					System.out.println("Airline last Id++: "+id);
+					id = "A"+id;				
 				
 					break;
 				case 2: 	//Customer Class
+					System.out.println("Customer get Id");
 					sql = "select cId from customer;";
 					
 					rs = st.executeQuery(sql);
 					//Move the cursor to the last row
 					rs.last();
 					id = rs.getString(1);
-					//System.out.println("last id: "+id);
+					System.out.println("Customer current last id: "+id);
 					
 					//Separate tokens (C+number)
 					stoken = new StringTokenizer(id,"C");
@@ -247,11 +268,35 @@ public class Database{
 					if(lastId<10)
 						id = "0"+String.valueOf(lastId);
 					else id = String.valueOf(lastId);
-					id = "C"+id;
-					//System.out.println("id: "+id);					
+					System.out.println("Customer last Id++: "+id);
+					id = "C"+id;				
 				
 					break;
-				case 3: break;
+				case 3: 	//Airplane Class
+					System.out.println("Airplane get Id");
+					sql = "select pId from airplane";
+					
+					rs = st.executeQuery(sql);
+					//Move the cursor to the last row
+					rs.last();
+					id = rs.getString(1);
+					System.out.println("Airplane current last id: "+id);
+					
+					//Separate tokens (C+number)
+					stoken = new StringTokenizer(id,"P");
+					id = stoken.nextToken();
+					
+					//String -> Integer (To increase the number of id)
+					lastId = Integer.parseInt(id);
+					lastId++;
+					//Intger -> String (To use the number of id for a new row)
+					if(lastId<10)
+						id = "0"+String.valueOf(lastId);
+					else id = String.valueOf(lastId);
+					System.out.println("Airplane last Id++: "+id);
+					id = "P"+id;	
+					
+					break;
 				case 4: break;
 				case 5: break;
 			}
@@ -260,6 +305,32 @@ public class Database{
 		}
 		
 		return id;
+	}
+	
+	public String GetForeignKeyfromOtherTables(String fk, String keyword){
+		try {
+			if(fk.equals("aid")){		//Get id from airline table
+				sql = "select aId from airline where name='"+keyword+"'";
+				rs = st.executeQuery(sql);
+				rs.next();
+				fk = rs.getString(1);		
+			}
+			else if(fk.equals("apCountry")){	//Get country from airport table
+				sql = "select country from airplane where pId='"+keyword+"'";
+				rs = st.executeQuery(sql);
+				
+				fk = rs.getString(1);
+			}
+			else if(fk.equals("apName")){		//Get name from airport table
+				sql = "select name from airplane where pId='"+keyword+"'";
+				rs = st.executeQuery(sql);
+				
+				fk = rs.getString(1);
+			}
+		} catch (SQLException e) {
+			System.out.println("Connection Error: "+e.getStackTrace());
+		}
+		return fk;
 	}
 	
 	/** 
@@ -293,9 +364,23 @@ public class Database{
 					}
 					ps.executeUpdate();
 					break;
-				case 3: break;
-				case 4: break;
-				case 5: break;
+				case 3:		//Airplane Class
+					sql = "insert into airplane values(?,?,?,?,?,?,?,?,?);";
+					ps = conn.prepareStatement(sql);
+					System.out.println("Length: "+rows.length);
+					for(int i=0;i<rows.length;i++){
+						System.out.println(i+1+" rows["+i+"]: "+rows[i]);
+						if(i < 4)	ps.setString(i+1, rows[i]);
+						else if(i < 7)	ps.setInt(i+1, Integer.parseInt(rows[i]));
+						else ps.setDouble(i+1, Double.parseDouble(rows[i]));
+					}
+					ps.executeUpdate();
+					//ps.close();
+					break;
+				case 4: 	//Flight Class
+					break;
+				case 5: 	//Reservation Class
+					break;
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
@@ -323,7 +408,12 @@ public class Database{
 					ps.setString(1, id);
 					ps.executeUpdate();				
 					break;
-				case 3: break;
+				case 3: 	//Airplane Class
+					sql = "delete from airplane where pId=?";					
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, id);
+					ps.executeUpdate();	
+					break;
 				case 4: break;
 				case 5: break;
 			}
@@ -350,8 +440,7 @@ public class Database{
 							+ "payment_preference=?,seat=? where cId=?";
 					ps = conn.prepareStatement(sql);
 					for(int i=0;i<rows.length;i++){
-						System.out.println(i+1+" rows["+i+"]: "+rows[i]);
-						if(i==4){
+						if(i==4){	//membership
 							if(rows[i].equals("X"))
 								ps.setInt(i+1, 0);
 							else
@@ -362,14 +451,30 @@ public class Database{
 					ps.setString(rows.length+1, rows[0]);
 					ps.executeUpdate();	
 					break;
-				case 3: break;
-				case 4: break;
-				case 5: break;
+				case 3: 	//Airplane Class
+					sql = "update airplane set pId=?,aId=?,aircraft=?,"
+							+ "type=?,first=?,business=?,economy=?,"
+							+ "length=?,size=? where pId=?";
+					ps = conn.prepareStatement(sql);
+					for(int i=0;i<rows.length;i++){
+						System.out.println(i+1+" rows["+i+"]: "+rows[i]);
+						if(i < 4)	ps.setString(i+1, rows[i]);
+						else if(i < 7)	ps.setInt(i+1, Integer.parseInt(rows[i]));
+						else ps.setDouble(i+1, Double.parseDouble(rows[i]));
+					}
+					ps.setString(rows.length+1, rows[0]);
+					ps.executeUpdate();	
+					break;
+				case 4: 	//Flight Class
+					break;
+				case 5: 	//Reservation Class
+					break;
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
 		}
 	}
+	
 	/**
 	 * Search the Information from Airline Table
 	 * @param int searchMode Get search mode from the ComboBox
@@ -541,11 +646,20 @@ public class Database{
 		try{
 			switch(searchMode){
 				case 0: 	//SEARCH_NONE: Update Table
-					sql = "select * from Airplane";
+					//Create a view to get airline names by airline id
+					sql = "create or replace view apview as "
+						+ "select ap.pId, al.name, ap.aircraft, ap.type, ap.firstclass, ap.business, "
+						+ "ap.economy, ap.length, ap.plane_size "
+						+ "from airplane as ap inner join airline as al "
+						+ "where ap.aId = al.aId;";
+					st.executeUpdate(sql);
+					
+					sql = "select * from apview;";					
 					rs = st.executeQuery(sql);
 					break;
 				case 1:		//SEARCH_ALL 
-					
+					sql = "";
+					rs = st.executeQuery(sql);
 					break;
 				case 2:		//SEARCH_ID
 					break;
@@ -574,7 +688,7 @@ public class Database{
 			Object[] tempObj = new Object[rsMetaData.getColumnCount()];
 			
 			//Reset DefaultTableModel
-			swing.Airline.model.setRowCount(0);
+			swing.Airplane.model.setRowCount(0);
 			
 			while(rs.next()){
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){

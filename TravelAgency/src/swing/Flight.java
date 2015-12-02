@@ -198,7 +198,7 @@ public class Flight extends JPanel implements ActionListener{
 		FlightColNames.add("¿ä±Ý");
 		
 		model = new DefaultTableModel(FlightColNames, 0);
-		db.Table_Initialize(CLASS_ID);
+		//db.Table_Initialize(CLASS_ID);
 		
 		//Create a Table with Data and Column Names
 		airlineTable = new JTable(model);		

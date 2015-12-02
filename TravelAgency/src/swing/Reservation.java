@@ -251,7 +251,7 @@ public class Reservation extends JPanel implements ActionListener{
 		
 		//Create DefaultTableModel
 		model = new DefaultTableModel(apColNames, 0);
-		db.Table_Initialize(CLASS_ID);
+		//db.Table_Initialize(CLASS_ID);
 		
 		//Create a Table with DefaultTableModel
 		airlineTable = new JTable(model);

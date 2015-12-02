@@ -40,7 +40,7 @@ import main.Database;
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
  * @version 1.1 12/02/15
- * @author Hyunjeong Shim, 김상완, 유란영
+ * @author 심현정, 김상완, 유란영
  * */
 @SuppressWarnings("serial")
 public class Airline extends JPanel implements ActionListener{
@@ -160,7 +160,7 @@ public class Airline extends JPanel implements ActionListener{
 		
 		//ComboBox: Airline Names (Statistics)
 		comboNames = new Vector<>();
-		comboNames = db.AirlineComboNames();
+		comboNames = db.AirlineComboNames(CLASS_ID);
 		cbAirlines = new JComboBox<String>(comboNames);
 		cbAirlines.setSelectedItem(0);
 		cbAirlines.addActionListener(new ActionListener(){
@@ -286,7 +286,7 @@ public class Airline extends JPanel implements ActionListener{
 				btnAlDelete.setText("삭제");
 				//Reset ComboBox
 				cbAirlines.removeAllItems();
-				comboNames = db.AirlineComboNames();
+				comboNames = db.AirlineComboNames(CLASS_ID);
 				for(int i=0;i<comboNames.size();i++){
 					cbAirlines.addItem(comboNames.get(i));
 				}

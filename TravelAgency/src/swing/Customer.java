@@ -8,7 +8,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -451,7 +450,7 @@ public class Customer extends JPanel implements ActionListener, ItemListener{
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getSource();	//Get Selected Object
 		
-		//Radio buttons
+		//Membership group radio buttons
 		if(source == membershipTrue || source == membershipFalse){
 			if(membershipTrue.isSelected()){
 				member = "1";

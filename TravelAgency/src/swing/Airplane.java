@@ -1,30 +1,28 @@
 package swing;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
-import java.sql.SQLException;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -32,14 +30,30 @@ import javax.swing.table.TableColumnModel;
 import main.Database;
 
 /** Airplane UI & Functions */
-public class Airplane extends JPanel implements ActionListener{
-	//DB에서 클래스 구분에 사용할 ID
+@SuppressWarnings("serial")
+public class Airplane extends JPanel implements ActionListener, ItemListener{
+	//Instance variables
+	//Class id for distinguishing tabs(classes)
 	private final int CLASS_ID = 3;
 	
+	//Search mode constant
+	private final int SEARCH_NONE = 0;	//For initializing the table rows
+	private final int SEARCH_ALL = 1;
+	private final int SEARCH_ID = 2;
+	private final int SEARCH_AIRLINE = 3;
+	private final int SEARCH_AIRCRAFT = 4;
+	private final int SEARCH_TYPE = 5;
+	private final int SEARCH_FIRST = 6;
+	private final int SEARCH_BUSINESS = 7;
+	private final int SEARCH_ECONOMY = 8;
+	private final int SEARCH_LENGTH = 9;
+	private final int SEARCH_SIZE = 10;
+	
 	//JButton
-	private JButton btnApEnroll;
+	private JButton btnApAddnUpdate;
 	private JButton btnApDelete;
 	private JButton btnApSearch;
+	private JButton btnShowAll;
 	
 	//JLabel
 	private JLabel lblAircraft;
@@ -55,16 +69,16 @@ public class Airplane extends JPanel implements ActionListener{
 	private JLabel lblCount3;
 	private JLabel lblmeter1;
 	private JLabel lblmeter2;
-	private JLabel location;
+	//private JLabel location;
 	
 	//Font, JScrollPane, JTable
 	private Font font;
 	private JScrollPane scroll;
-	private JTable airlineTable;
+	private JTable airplaneTable;
 	
 	//JRadioButton: Aircraft
 	ButtonGroup aircraft;
-	JRadioButton aircraftBoing;
+	JRadioButton aircraftBoeing;
 	JRadioButton aircraftAirbus;
 	
 	//JRadioButton: Type
@@ -81,49 +95,72 @@ public class Airplane extends JPanel implements ActionListener{
 	private JTextField tfSize;
 	
 	//JComboBox
-	private JComboBox cbSearch;
-	private JComboBox cbAirline;
+	private JComboBox<String> cbSearch;
+	private JComboBox<String> cbAirline;
 	
-	//JCheckBox
-	//private JCheckBox chBox;
-	
-	//Vector, String
+	//Vector<String>: Column Names, Airline Name ComboBox Items
 	Vector<String> apColNames;
-	String apCombo[] = {"전체","ID","항공사ID","제작사","종류",
-			"일등석","비즈니스","이코노미","길이","크기"};
-	String alCombo[] = {"Korean Air","Emirates","Delta","Lufthansa","Air France"};
-	Vector<Vector> data;
+	Vector<String> comboNames;
 	
+	//String: ComboBox Items 
+	String apCombo[] = {"전체","ID","항공사","제작사","종류",
+			"일등석","비즈니스","이코노미","길이","크기"};
+	private String id;		//Id for the last id number
+	private String aId;		//Id of airline
+	private String at;		//Get chosen radio button from aircraft group
+	private String tp;		//Get chosen radio button from type group
+	private String airline;	//Get chosen item form airline names combo box
+	
+	//Int: Get Search Mode
+	private int searchMode;
+	
+	//DefaultTableModel
 	public static DefaultTableModel model;
 	
 	//Database Class
-	Database db = null;
+	Database db;
 	
-	/** Airline Constructor 
-	 * @throws SQLException */
-	public Airplane() throws SQLException{
+	/** Airplane Constructor */
+	public Airplane(){
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
 		
+		//Connect to DB
+		db = new Database();
+		
+		//Get last id number
+		id = db.getID(CLASS_ID);
+		
 		Enroll_init();
 		Table_init();
-		Location();
+		//Location();
 	}
 	
 	/** 등록/삭제 버튼 및 등록 부분 UI */
 	private void Enroll_init(){
-		//Label에 사용할 폰트
+		//Font for Labels
 		font = new Font("",Font.BOLD,12);
 		
-		//등록 부분 양식
+		//Enroll Form
 		lblAirline = new JLabel("* 항  공  사 : ");
 		lblAirline.setBounds(80,30,85,20);
 		lblAirline.setFont(font);
 		add(lblAirline);
 		
-		//ComboBox: Search			
-		cbAirline = new JComboBox(alCombo);
-		cbAirline.addActionListener(this);
+		//ComboBox: Airline Names
+		comboNames = new Vector<>();
+		comboNames = db.AirlineComboNames(CLASS_ID);
+		cbAirline = new JComboBox<String>(comboNames);
+		cbAirline.setSelectedItem(0);
+		cbAirline.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(cbAirline.getSelectedItem()!=null){
+					airline = cbAirline.getSelectedItem().toString();
+					System.out.println("airline: "+airline);
+				}
+			}			
+		});
 		cbAirline.setBounds(165, 30, 100, 20);
 		add(cbAirline);
 		
@@ -134,19 +171,19 @@ public class Airplane extends JPanel implements ActionListener{
 		
 		//Aircraft Radio Button
 		aircraft = new ButtonGroup();
-		aircraftBoing = new JRadioButton("보잉");
-		aircraftAirbus = new JRadioButton("에어버스");
-		aircraft.add(aircraftBoing);
+		aircraftBoeing = new JRadioButton("Boeing");
+		aircraftAirbus = new JRadioButton("Airbus");
+		aircraft.add(aircraftBoeing);
 		aircraft.add(aircraftAirbus);
-		aircraftBoing.addActionListener(this);
-		aircraftAirbus.addActionListener(this);
-		aircraftBoing.setBounds(160, 65, 60, 20);
-		aircraftBoing.setFont(font);
-		aircraftBoing.setBackground(Color.LIGHT_GRAY);
+		aircraftBoeing.addItemListener(this);
+		aircraftAirbus.addItemListener(this);
+		aircraftBoeing.setBounds(160, 65, 60, 20);
+		aircraftBoeing.setFont(font);
+		aircraftBoeing.setBackground(Color.LIGHT_GRAY);
 		aircraftAirbus.setBounds(230, 65, 80, 20);
 		aircraftAirbus.setFont(font);
 		aircraftAirbus.setBackground(Color.LIGHT_GRAY);
-		add(aircraftBoing);
+		add(aircraftBoeing);
 		add(aircraftAirbus);
 		  
 		lblType = new JLabel("* 종        류 : ");
@@ -157,15 +194,15 @@ public class Airplane extends JPanel implements ActionListener{
 		//Type Radio Button
 		type = new ButtonGroup();
 		typeJet = new JRadioButton("제트기");
-		typeTurbo = new JRadioButton("터보 프로펠러 항공기");
+		typeTurbo = new JRadioButton("터보 프로펠러");
 		type.add(typeJet);
 		type.add(typeTurbo);
-		typeJet.addActionListener(this);
-		typeTurbo.addActionListener(this);
+		typeJet.addItemListener(this);
+		typeTurbo.addItemListener(this);
 		typeJet.setBounds(160, 100, 70, 20);
 		typeJet.setFont(font);
 		typeJet.setBackground(Color.LIGHT_GRAY);
-		typeTurbo.setBounds(230, 100, 150, 20);
+		typeTurbo.setBounds(230, 100, 100, 20);
 		typeTurbo.setFont(font);
 		typeTurbo.setBackground(Color.LIGHT_GRAY);
 		add(typeJet);
@@ -232,76 +269,81 @@ public class Airplane extends JPanel implements ActionListener{
 		tfSize.setBounds(350, 170, 50, 20);
 		add(tfSize);			
 		
-		lblmeter2 = new JLabel("m");
-		lblmeter2.setBounds(430, 170, 30, 20);
+		lblmeter2 = new JLabel("m^2");
+		lblmeter2.setBounds(415, 170, 30, 20);
 		add(lblmeter2);
 		
+		//ShowAll Button: Refresh the table
+		btnShowAll = new JButton("전체보기");
+		btnShowAll.addActionListener(this);
+		btnShowAll.setBounds(778, 130, 132, 30);
+		add(btnShowAll);
+		
 		//등록 버튼: 테이블 새로 한 줄 추가
-		btnApEnroll = new JButton("등록");
-		btnApEnroll.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnAddRow();					
-			}
-		});
-		btnApEnroll.setBounds(778, 170, 62, 30);
-		add(btnApEnroll);
+		btnApAddnUpdate = new JButton("등록");
+		btnApAddnUpdate.addActionListener(this);
+		btnApAddnUpdate.setBounds(778, 170, 62, 30);
+		add(btnApAddnUpdate);
 		
 		//삭제 버튼: 선택된 테이블 한 줄 삭제
 		btnApDelete = new JButton("삭제");
-		btnApDelete.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				btnDelRow();					
-			}
-		});
+		btnApDelete.addActionListener(this);
 		btnApDelete.setBounds(848, 170, 62, 30);
 		add(btnApDelete);
 	}
 	
-	/** 테이블 및 검색 부분 UI 
-	 * @throws SQLException */
-	private void Table_init() throws SQLException{
-		//Connect to DB & Get Data from Airline Table
-		db = new Database();
-		/*data = new Vector<>();
-		db.Table_Initialize(CLASS_ID);*/
-		
+	/** 테이블 및 검색 부분 UI */
+	private void Table_init(){
 		//Initialize Column Names
 		apColNames = new Vector<>();
-		//apColNames.add("ch");
 		apColNames.add("ID");
-		apColNames.add("항공사ID");
+		apColNames.add("항공사");
 		apColNames.add("제작사");
 		apColNames.add("종류");
 		apColNames.add("일등석");
 		apColNames.add("비즈니스");
 		apColNames.add("이코노미");
-		apColNames.add("길이");
-		apColNames.add("크기");
+		apColNames.add("길이(m)");
+		apColNames.add("크기(m^2)");
 		
-		model = new DefaultTableModel(apColNames, 0);
-		db.Table_Initialize(CLASS_ID);
+		model = new DefaultTableModel(apColNames, 0){
+			//Prevent editing cells
+			public boolean isCellEditable(int row, int column){
+				if(column>=0)	return false;
+				else return true;
+			}
+		};
 		
-		//Create a Table with Data and Column Names
-		airlineTable = new JTable(model);		
+		db.AirplaneSearch(SEARCH_NONE, null);
 		
-		//Table Settings
-		airlineTable.addMouseListener(new JTableMouseListener());
-		airlineTable.getTableHeader().setReorderingAllowed(false);		//테이블 칼럼 이동 방지
-		tableCellCenter(airlineTable);
-		setColumnSize(airlineTable);
-		scroll = new JScrollPane(airlineTable);
+		//Create a table
+		airplaneTable = new JTable(model);	
+		
+		//Table settings
+		//Enable auto row sorting
+		airplaneTable.setAutoCreateRowSorter(true);
+		//Add mouse listener
+		airplaneTable.addMouseListener(new JTableMouseListener());
+		//Fix the column's location
+		airplaneTable.getTableHeader().setReorderingAllowed(false);		
+		//Enable multiple selection
+		airplaneTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+		
+		tableCellCenter(airplaneTable);
+		setColumnSize(airplaneTable);
+		scroll = new JScrollPane(airplaneTable);
 		scroll.setBounds(70, 210, 850, 350);
 		add(scroll);
 		
-		//CheckBox for the Table
-		/*chBox = new JCheckBox();
-		chBox.setHorizontalAlignment(JLabel.CENTER);
-		airlineTable.getColumn("ch").setCellEditor(new DefaultCellEditor(chBox));
-		add(chBox);*/
-		
 		//ComboBox: Search			
-		cbSearch = new JComboBox(apCombo);
-		cbSearch.addActionListener(this);
+		cbSearch = new JComboBox<String>(apCombo);
+		cbSearch.setSelectedIndex(0);
+		cbSearch.addActionListener(new ActionListener(){
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				searchMode = cbSearch.getSelectedIndex();
+			}			
+		});
 		cbSearch.setBounds(280, 580, 80, 30);
 		add(cbSearch);
 		
@@ -317,57 +359,184 @@ public class Airplane extends JPanel implements ActionListener{
 		add(btnApSearch);
 	}
 	
-	/** 좌표 표시 */
-	public void Location(){
-		location = new JLabel("현재 좌표");
-		MouseMotionAdapter ma = new MouseMotionAdapter() {
-			public void mouseMoved(MouseEvent e) {
-                // 마우스 좌표 얻어오기
-                int x = e.getX();
-                int y = e.getY();
-                String str = "x좌표:" + x + ",y좌표:" + y;
+	/** Add a New Row & Update Selected Row */
+	void AddnUpdateRow(int flag){
+		//Get text and information from TextField and RadioButton
+		String first = tfFirst.getText();
+		String business = tfBusiness.getText();
+		String economy = tfEconomy.getText();
+		String length = tfLength.getText();
+		String size = tfSize.getText();
+		aId = db.GetForeignKeyfromOtherTables("aid", airline);
 
-                // Label에 문자열 넣기
-                location.setText(str);
-            }
-		};
-		this.addMouseMotionListener(ma);
-		location.setBounds(610, 155, 200, 32);
-		add(location);
+		//String[] for DB
+		String[] rowsforDB = {id,aId,at,tp,first,business,economy,length,size};
+		//String[] for insertion
+		String[] rowsforInsert = {id,airline,at,tp,first,business,economy,length,size};
+		
+		//Check if essential fields are filled or not
+		/*System.out.println("Selected Index: "+cbAirline.getSelectedIndex());
+		System.out.println("tp: "+tp+"\nat: "+at);*/
+		if(cbAirline.getSelectedIndex() == 0 || tp==null || at==null || first.isEmpty()
+				|| business.isEmpty() || economy.isEmpty() || length.isEmpty() || size.isEmpty())
+			JOptionPane.showMessageDialog(null, "필수 입력칸을 모두 채워주세요.",
+					"Message",JOptionPane.ERROR_MESSAGE);
+		else{
+			if(flag==0){	//Add a new row
+				db.InsertData(CLASS_ID,rowsforDB);
+				model.addRow(rowsforInsert);
+			}
+			else{			//Update selected row
+				db.UpdateData(CLASS_ID,rowsforDB);
+				JOptionPane.showMessageDialog(null, "수정 되었습니다.",
+						"Message",JOptionPane.OK_OPTION);
+				//Reset button text
+				btnApAddnUpdate.setText("등록");
+				btnApDelete.setText("삭제");
+				
+				//Refresh the table
+				db.AirplaneSearch(SEARCH_NONE, null);
+			}
+			//Reset TextField
+			tfFirst.setText(null);
+			tfBusiness.setText(null);
+			tfEconomy.setText(null);
+			tfLength.setText(null);
+			tfSize.setText(null);
+			
+			//Reset RadioButton
+			aircraft.clearSelection();
+			type.clearSelection();
+			
+			//Reset ComboBox
+			cbAirline.setSelectedIndex(0);
+			
+			//Reset variables
+			at=null;
+			tp=null;
+		}
 	}
 	
-	void btnAddRow(){
-		DefaultTableModel model = (DefaultTableModel)airlineTable.getModel();
-		model.addRow(new String[]{"","","","",""});
+	/** Delete Selected Row */
+	void DelRow(){
+		if(airplaneTable.getSelectedRowCount()>0){
+			for(int i : airplaneTable.getSelectedRows()){
+				db.DeleteData(CLASS_ID, String.valueOf(model.getValueAt(i, 0)));
+			}
+			
+			//Refresh the table
+			db.AirplaneSearch(SEARCH_NONE,null);
+			
+			//Get last id number
+			id = db.getID(CLASS_ID);
+		}
+		else{
+			JOptionPane.showMessageDialog(null, "선택된 컬럼이 없습니다.",
+					"Message",JOptionPane.ERROR_MESSAGE);
+		}
 	}
 	
-	void btnDelRow(){
-		int row = airlineTable.getSelectedRow();
-		if(row<0) return;
-		DefaultTableModel model = (DefaultTableModel)airlineTable.getModel();
-		model.removeRow(row);
+	/** Radio Button Item Listener */
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		Object source = e.getSource();	//Get Selected Object
+		
+		//Aircraft group radio buttons
+		if(source == aircraftAirbus || source == aircraftBoeing){
+			if(aircraftAirbus.isSelected()){
+				at = "Airbus";
+			}
+			else if(aircraftBoeing.isSelected()){
+				at ="Boeing";
+			}
+			else{}
+		}
+		
+		//Type group radio buttons
+		if(source == typeJet || source == typeTurbo){
+			if(typeJet.isSelected()){
+				tp = "제트기";
+			}
+			else if(typeTurbo.isSelected()){
+				tp ="터보 프로펠러";
+			}
+			else{}
+		}
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();	//선택된 버튼 가져오기
 		
-		if(source == "btnApEnroll"){
-			setVisible(false);
+		if(source.equals(btnApAddnUpdate)){
+			//Check if it's add mode(0) or update mode(1)
+			if(btnApAddnUpdate.getText().equals("등록")){
+				System.out.println("hit 등록");
+				//Get last id number
+				id = db.getID(CLASS_ID);
+				AddnUpdateRow(0);
+			}
+			else{
+				AddnUpdateRow(1);
+			}
 		}
-		
-	}
-	
-	
-	/*DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer(){
-		public Component getTableCellRendererComponent
-		(JTable t, Object value, boolean isSelected, boolean hasFocus, int row, int column){
-			chBox.setSelected(((Boolean)value).booleanValue());
-			//chBox.set
+		else if(source.equals(btnApDelete)){
+			if(btnApDelete.getText().equals("삭제")){
+				System.out.println("삭제");
+				DelRow();
+			}
+			else{
+				//Reset TextField
+				tfFirst.setText(null);
+				tfBusiness.setText(null);
+				tfEconomy.setText(null);
+				tfLength.setText(null);
+				tfSize.setText(null);
+				
+				//Reset RadioButton
+				aircraft.clearSelection();
+				type.clearSelection();
+				
+				//Reset ComboBox
+				cbAirline.setSelectedIndex(0);
+				
+				//Reset variables
+				at=null;
+				tp=null;
+				
+				btnApDelete.setText("삭제");
+				btnApAddnUpdate.setText("등록");
+			}
+		}
+		else if(source.equals(btnApSearch)){
+			String keyWord = tfSearch.getText().trim();
+			if(keyWord.isEmpty())
+				JOptionPane.showMessageDialog(null, "검색어를 입력하세요.",
+						"Message",JOptionPane.ERROR_MESSAGE);
+			else{
+				switch(searchMode){
+					case 0: db.AirplaneSearch(SEARCH_ALL,keyWord); break;
+					case 1: db.AirplaneSearch(SEARCH_ID,keyWord); break;
+					case 2: db.AirplaneSearch(SEARCH_AIRLINE,keyWord); break;
+					case 3: db.AirplaneSearch(SEARCH_AIRCRAFT,keyWord); break;
+					case 4: db.AirplaneSearch(SEARCH_TYPE,keyWord); break;
+					case 5: db.AirplaneSearch(SEARCH_FIRST,keyWord); break;
+					case 6: db.AirplaneSearch(SEARCH_BUSINESS,keyWord); break;
+					case 7: db.AirplaneSearch(SEARCH_ECONOMY,keyWord); break;
+					case 8: db.AirplaneSearch(SEARCH_LENGTH,keyWord); break;
+					case 9: db.AirplaneSearch(SEARCH_SIZE,keyWord); break;
+				}
+			}
 			
-			return chBox;				
+			//Reset
+			tfSearch.setText(null);
+			cbSearch.setSelectedIndex(0);
 		}
-	};*/
+		else if(source.equals(btnShowAll)){
+			//id = db.getID(CLASS_ID);
+			db.AirplaneSearch(SEARCH_NONE, null);
+		}
+	}
 	
 	/** 테이블 내용 가운데 정렬 */
 	private void tableCellCenter(JTable t){
@@ -388,13 +557,13 @@ public class Airplane extends JPanel implements ActionListener{
 	private void setColumnSize(JTable t){
 		TableColumnModel tcm = t.getColumnModel();
 		
-		/*tcm.getColumn(0).setPreferredWidth(40);
-		tcm.getColumn(1).setPreferredWidth(40);
-		tcm.getColumn(2).setPreferredWidth(50);
-		tcm.getColumn(3).setPreferredWidth(50);
-		tcm.getColumn(4).setPreferredWidth(70);
-		tcm.getColumn(5).setPreferredWidth(100);
-		tcm.getColumn(6).setPreferredWidth(100);*/
+		tcm.getColumn(0).setPreferredWidth(20);
+		tcm.getColumn(1).setPreferredWidth(80);
+		tcm.getColumn(2).setPreferredWidth(60);
+		tcm.getColumn(3).setPreferredWidth(80);
+		
+		for(int i=4;i<9;i++)
+			tcm.getColumn(i).setPreferredWidth(40);
 		
 		//전체 열 사이즈 변경 불가
 		for(int i=0;i<tcm.getColumnCount();i++){
@@ -405,13 +574,55 @@ public class Airplane extends JPanel implements ActionListener{
 	/** Table Mouse Listener (Click, Enter, Exit, Press, Release)*/
 	private class JTableMouseListener implements MouseListener{
 		public void mouseClicked(MouseEvent e) {
-			JTable jtable = (JTable)e.getSource();
-			int row = jtable.getSelectedRow();
-			int col = jtable.getSelectedColumn();
-			DefaultTableModel model = (DefaultTableModel)jtable.getModel();
-			
-			System.out.println(model.getValueAt(row, 1));	//눌려진 행의 부분에서 1번째(2번째 열) 값 출력
-			System.out.println(model.getValueAt(row, col));	//눌려진 행과 열에 해당하는 선택된 데이터 하나 출력			
+			//Action when you right-click the column
+			if(e.getButton()==3){
+				//Check if the columns are multi-selected or not
+				if(airplaneTable.getSelectedRowCount()>1){
+					JOptionPane.showMessageDialog(null, "수정할 컬럼을 한 개만 선택하세요.",
+							"Message",JOptionPane.ERROR_MESSAGE);
+				}
+				else if(airplaneTable.getSelectedRow()==-1){
+					JOptionPane.showMessageDialog(null, "수정할 칼럼을 먼저 마우스 왼쪽 클릭해주세요.",
+							"Message",JOptionPane.ERROR_MESSAGE);
+				}
+				else{	//Set text to the form
+					//Reset variables
+					at = null;
+					tp = null;
+					
+					int row = airplaneTable.getSelectedRow();
+					for(int i=0;i<airplaneTable.getColumnCount();i++){
+						if(i==0)	{ id = (String) model.getValueAt(row, i); }
+						if(i==1)	{ cbAirline.setSelectedItem((String) model.getValueAt(row, i)); }
+						else if(i==2)	{ 	//Aircraft
+							String at_ = (String) model.getValueAt(row, i);
+							if(at_.equals("Boeing")){	
+								aircraftBoeing.setSelected(true);
+							}
+							else{
+								aircraftAirbus.setSelected(true);
+							}
+						}
+						else if(i==3)	{ 	//Type
+							String tp_ = (String) model.getValueAt(row, i);
+							if(tp_.equals("제트기")){
+								typeJet.setSelected(true);
+							}
+							else{
+								typeTurbo.setSelected(true);
+							} 
+						}
+						else if(i==4){ tfFirst.setText((String) model.getValueAt(row, i)); }
+						else if(i==5){ tfBusiness.setText((String) model.getValueAt(row, i)); }
+						else if(i==6){ tfEconomy.setText((String) model.getValueAt(row, i)); }
+						else if(i==7){ tfLength.setText((String) model.getValueAt(row, i));	}
+						else if(i==8){ tfSize.setText((String) model.getValueAt(row, i)); }
+					}
+					
+					btnApAddnUpdate.setText("수정");
+					btnApDelete.setText("취소");
+				}
+			}
 		}
 
 		@Override
@@ -426,23 +637,5 @@ public class Airplane extends JPanel implements ActionListener{
 		@Override
 		public void mouseReleased(MouseEvent e) {}		
 	}
-	
-	/*private class TableModel extends AbstractTableModel{
-		@Override
-		public int getColumnCount() {
-			return 0;
-		}
 
-		@Override
-		public int getRowCount() {
-			return 0;
-		}
-
-		@Override
-		public Object getValueAt(int arg0, int arg1) {
-			return null;
-		}
-		
-	}*/
-	
 }
