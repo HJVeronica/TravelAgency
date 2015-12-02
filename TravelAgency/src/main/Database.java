@@ -165,6 +165,41 @@ public class Database{
 		}
 		return comboNames;
 	}
+
+	public Vector<String> CustomerComboNames(int flag){
+		Vector<String> comboNames = new Vector<String>();
+		sql = "select name from customer;";
+		try {
+			rs = st.executeQuery(sql);
+			if(flag == 1)
+				comboNames.add("전체");
+			else
+				comboNames.add("선택");
+		
+			while(rs.next()){
+				comboNames.add(rs.getString(1));
+			}
+		} catch (SQLException e) {
+			System.out.println("Connection Error: "+e.getStackTrace());
+		}
+		return comboNames;
+	}
+	
+	public Vector<String> FlightComboNames(){
+		Vector<String> comboNames = new Vector<String>();
+		sql = "select flight_name from flight;";
+		try {
+			rs = st.executeQuery(sql);
+			comboNames.add("선택");
+		
+			while(rs.next()){
+				comboNames.add(rs.getString(1));
+			}
+		} catch (SQLException e) {
+			System.out.println("Connection Error: "+e.getStackTrace());
+		}
+		return comboNames;
+	}
 	
 	/** 
 	 * Show the Tuples That Includes the Selected Airline Name 
@@ -174,40 +209,19 @@ public class Database{
 	 * */
 	public void AirlineSelectName(String name){
 		if(name.equals("전체")){
-			sql = "select * from Airline";			
-			try {
-				rs = st.executeQuery(sql);
-				while(rs.next()){
-					line = new Vector<String>();
-					line.add(rs.getString("aId"));
-					line.add(rs.getString("name"));
-					line.add(rs.getString("country"));
-					line.add(rs.getString("address"));
-					line.add(rs.getString("phone"));
-					
-					swing.Airline.model.addRow(line);
-				}
-			} catch (SQLException e) {
-				System.out.println("Connection Error: "+e.getStackTrace());
-			}
+			AirlineSearch(0, null);
 		}
 		else{
-			sql = "select * from airline where name='"+name+"'";
-			try {
-				rs = st.executeQuery(sql);
-				while(rs.next()){
-					line = new Vector<String>();
-					line.add(rs.getString("aId"));
-					line.add(rs.getString("name"));
-					line.add(rs.getString("country"));
-					line.add(rs.getString("address"));
-					line.add(rs.getString("phone"));
-					
-					swing.Airline.model.addRow(line);
-				}
-			} catch (SQLException e) {
-				System.out.println("Connection Error: "+e.getStackTrace());
-			}
+			AirlineSearch(3,name);
+		}
+	}
+	
+	public void CustomerSelectName(String name){
+		if(name.equals("전체")){
+			CustomerSearch(0, null);
+		}
+		else{
+			CustomerSearch(3, name);
 		}
 	}
 	
@@ -774,7 +788,7 @@ public class Database{
 		try{
 			switch(searchMode){
 				case 0: 	//SEARCH_NONE: Update Table
-					sql = "select * from Reservation";
+					sql = "select * from reservation order by cId";
 					rs = st.executeQuery(sql);
 					break;
 				case 1:		//SEARCH_ALL 
@@ -803,11 +817,19 @@ public class Database{
 			Object[] tempObj = new Object[rsMetaData.getColumnCount()];
 			
 			//Reset DefaultTableModel
-			swing.Airline.model.setRowCount(0);
+			swing.Reservation.model.setRowCount(0);
 			
 			while(rs.next()){
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){
 					tempObj[i] = rs.getString(i+1);
+					if(i==5){	//When you get state information,
+						if(rs.getString(i+1).equals("1")){	//true
+							tempObj[i] = "OK";
+						}
+						else{	//false
+							tempObj[i] = "대기";
+						}
+					}
 				}
 				swing.Reservation.model.addRow(tempObj);
 			}
