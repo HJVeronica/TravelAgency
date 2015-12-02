@@ -28,7 +28,7 @@ import javax.swing.JTable;
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 0.9.5 12/02/15
+ * @version 0.9.6 12/02/15
  * @author 심현정, 김상완, 유란영
  * */
 public class Database{
@@ -223,14 +223,12 @@ public class Database{
 		try {
 			switch(TabNum){
 				case 1:		//Airline Class 
-					System.out.println("Airline get Id");
 					sql = "select aId from airline";
 					
 					rs = st.executeQuery(sql);
 					//Move the cursor to the last row
 					rs.last();
 					id = rs.getString(1);
-					System.out.println("Airline current last id: "+id);
 					
 					//Separate tokens (A+number)
 					stoken = new StringTokenizer(id,"A");
@@ -243,19 +241,16 @@ public class Database{
 					if(lastId<10)
 						id = "0"+String.valueOf(lastId);
 					else id = String.valueOf(lastId);
-					System.out.println("Airline last Id++: "+id);
 					id = "A"+id;				
 				
 					break;
 				case 2: 	//Customer Class
-					System.out.println("Customer get Id");
 					sql = "select cId from customer;";
 					
 					rs = st.executeQuery(sql);
 					//Move the cursor to the last row
 					rs.last();
 					id = rs.getString(1);
-					System.out.println("Customer current last id: "+id);
 					
 					//Separate tokens (C+number)
 					stoken = new StringTokenizer(id,"C");
@@ -268,19 +263,16 @@ public class Database{
 					if(lastId<10)
 						id = "0"+String.valueOf(lastId);
 					else id = String.valueOf(lastId);
-					System.out.println("Customer last Id++: "+id);
 					id = "C"+id;				
 				
 					break;
 				case 3: 	//Airplane Class
-					System.out.println("Airplane get Id");
-					sql = "select pId from airplane";
+					sql = "select pId from airplane order by pId";
 					
 					rs = st.executeQuery(sql);
 					//Move the cursor to the last row
 					rs.last();
 					id = rs.getString(1);
-					System.out.println("Airplane current last id: "+id);
 					
 					//Separate tokens (C+number)
 					stoken = new StringTokenizer(id,"P");
@@ -293,7 +285,6 @@ public class Database{
 					if(lastId<10)
 						id = "0"+String.valueOf(lastId);
 					else id = String.valueOf(lastId);
-					System.out.println("Airplane last Id++: "+id);
 					id = "P"+id;	
 					
 					break;
@@ -453,14 +444,13 @@ public class Database{
 					break;
 				case 3: 	//Airplane Class
 					sql = "update airplane set pId=?,aId=?,aircraft=?,"
-							+ "type=?,first=?,business=?,economy=?,"
-							+ "length=?,size=? where pId=?";
+							+ "type=?,firstclass=?,business=?,economy=?,"
+							+ "length=?,plane_size=? where pId=?";
 					ps = conn.prepareStatement(sql);
 					for(int i=0;i<rows.length;i++){
-						System.out.println(i+1+" rows["+i+"]: "+rows[i]);
-						if(i < 4)	ps.setString(i+1, rows[i]);
-						else if(i < 7)	ps.setInt(i+1, Integer.parseInt(rows[i]));
-						else ps.setDouble(i+1, Double.parseDouble(rows[i]));
+						if(i < 4)	{ ps.setString(i+1, rows[i]); }
+						else if(i < 7)	{ ps.setInt(i+1, Integer.parseInt(rows[i])); }
+						else if(i < 9) { ps.setDouble(i+1, Double.parseDouble(rows[i])); }
 					}
 					ps.setString(rows.length+1, rows[0]);
 					ps.executeUpdate();	
@@ -654,30 +644,54 @@ public class Database{
 						+ "where ap.aId = al.aId;";
 					st.executeUpdate(sql);
 					
-					sql = "select * from apview;";					
+					sql = "select * from apview order by pId;";					
 					rs = st.executeQuery(sql);
 					break;
 				case 1:		//SEARCH_ALL 
-					sql = "";
+					sql = "select * from apview where pId like '%"+keyWord+"%'"
+							+ " or name like '%"+keyWord+"%'"+" or aircraft like '%"+keyWord+"%'"
+							+ " or type like '%"+keyWord+"%'"+" or firstclass like '%"+keyWord+"%'"
+							+ " or business like '%"+keyWord+"%'"+" or economy like '%"+keyWord+"%'"
+							+ " or length like '%"+keyWord+"%'"+" or plane_size like '%"+keyWord+"%'"
+									+ "order by pId";
+
 					rs = st.executeQuery(sql);
 					break;
 				case 2:		//SEARCH_ID
+					sql = "select * from apview where pId like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 3:		//SEARCH_AIRLINE
+					sql = "select * from apview where airline like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 4:		//SEARCH_AIRCRAFT
+					sql = "select * from apview where aircraft like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 5:		//SEARCH_TYPE
+					sql = "select * from apview where type like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 6:		//SEARCH_FIRST
+					sql = "select * from apview where first like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 7:		//SEARCH_BUSINESS
+					sql = "select * from apview where business like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 8:		//SEARCH_ECONOMY
+					sql = "select * from apview where economy like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 9:		//SEARCH_LENGTH
+					sql = "select * from apview where length like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 				case 10:	//SEARCH_SIZE
+					sql = "select * from apview where plane_size like '%"+keyWord+"%' order by pId";
+					rs = st.executeQuery(sql);
 					break;
 			}
 

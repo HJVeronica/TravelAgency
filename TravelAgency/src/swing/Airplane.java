@@ -8,7 +8,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.ButtonGroup;
@@ -29,7 +28,25 @@ import javax.swing.table.TableColumnModel;
 
 import main.Database;
 
-/** Airplane UI & Functions */
+/** 
+ * <p><b> Airplane Class </b> 
+ * : Airplane UI & Functions</p>
+ * 
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #Airline()} : Constructor  <br>
+ * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
+ * - {@link #Table_init()} : UI of Table and Search Part  <br>
+ * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
+ * - {@link #DelRow()} : Delete Selected Row  <br>
+ * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
+ * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
+ * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
+ * <p><b>Another Class</b> <br>
+ * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
+ * 
+ * @version 1.0 12/02/15
+ * @author 심현정, 김상완, 유란영
+ * */
 @SuppressWarnings("serial")
 public class Airplane extends JPanel implements ActionListener, ItemListener{
 	//Instance variables
@@ -69,7 +86,6 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 	private JLabel lblCount3;
 	private JLabel lblmeter1;
 	private JLabel lblmeter2;
-	//private JLabel location;
 	
 	//Font, JScrollPane, JTable
 	private Font font;
@@ -133,7 +149,6 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		
 		Enroll_init();
 		Table_init();
-		//Location();
 	}
 	
 	/** 등록/삭제 버튼 및 등록 부분 UI */
@@ -375,8 +390,6 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		String[] rowsforInsert = {id,airline,at,tp,first,business,economy,length,size};
 		
 		//Check if essential fields are filled or not
-		/*System.out.println("Selected Index: "+cbAirline.getSelectedIndex());
-		System.out.println("tp: "+tp+"\nat: "+at);*/
 		if(cbAirline.getSelectedIndex() == 0 || tp==null || at==null || first.isEmpty()
 				|| business.isEmpty() || economy.isEmpty() || length.isEmpty() || size.isEmpty())
 			JOptionPane.showMessageDialog(null, "필수 입력칸을 모두 채워주세요.",
@@ -471,7 +484,6 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		if(source.equals(btnApAddnUpdate)){
 			//Check if it's add mode(0) or update mode(1)
 			if(btnApAddnUpdate.getText().equals("등록")){
-				System.out.println("hit 등록");
 				//Get last id number
 				id = db.getID(CLASS_ID);
 				AddnUpdateRow(0);
@@ -533,7 +545,7 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 			cbSearch.setSelectedIndex(0);
 		}
 		else if(source.equals(btnShowAll)){
-			//id = db.getID(CLASS_ID);
+			id = db.getID(CLASS_ID);
 			db.AirplaneSearch(SEARCH_NONE, null);
 		}
 	}
