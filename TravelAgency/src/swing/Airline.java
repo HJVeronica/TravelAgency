@@ -31,7 +31,7 @@ import main.Database;
  * - {@link #Airline()} : Constructor  <br>
  * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
  * - {@link #Table_init()} : UI of Table and Search Part  <br>
- * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
+ * - {@link #AddnUpdateRow(int))} : Add a New Row & Update Selected Row <br>
  * - {@link #DelRow()} : Delete Selected Row  <br>
  * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
  * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
@@ -39,7 +39,7 @@ import main.Database;
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 1.1 12/02/15
+ * @version 1.1 12/03/15
  * @author 심현정, 김상완, 유란영
  * */
 @SuppressWarnings("serial")
@@ -116,7 +116,11 @@ public class Airline extends JPanel implements ActionListener{
 		Table_init();
 	}
 	
-	/** UI of Enroll/Delete Buttons and Enroll Form */
+	/** 
+	 * UI of Enroll/Delete Buttons and Enroll Form 
+	 * @param
+	 * @return
+	 * */
 	private void Enroll_init(){
 		//Font for Label
 		font = new Font("",Font.BOLD,12);
@@ -176,13 +180,13 @@ public class Airline extends JPanel implements ActionListener{
 		cbAirlines.setBounds(75, 170, 130, 20);
 		add(cbAirlines);
 		
-		//등록 버튼: 테이블 새로 한 줄 추가
+		//JButton: Enroll
 		btnAlAddnUpdate = new JButton("등록");
 		btnAlAddnUpdate.addActionListener(this);
 		btnAlAddnUpdate.setBounds(778, 155, 62, 30);
 		add(btnAlAddnUpdate);
 		
-		//삭제 버튼: 선택된 테이블 한 줄 삭제
+		//JButton: Delete
 		btnAlDelete = new JButton("삭제");
 		btnAlDelete.addActionListener(this);
 		btnAlDelete.setBounds(848, 155, 62, 30);
@@ -257,7 +261,11 @@ public class Airline extends JPanel implements ActionListener{
 		add(btnAlSearch);
 	}
 	
-	/** Add a New Row & Update Selected Row */
+	/** 
+	 * Add a New Row & Update Selected Row 
+	 * @param int flag To distinguish add or update
+	 * @return
+	 * */
 	private void AddnUpdateRow(int flag){	
 		//Get text from TextField
 		String name = tfName.getText();
@@ -302,7 +310,11 @@ public class Airline extends JPanel implements ActionListener{
 		cbAirlines.setSelectedIndex(0);		
 	}
 	
-	/** Delete Selected Row */
+	/** 
+	 * Delete Selected Row
+	 * @param
+	 * @return
+	 *  */
 	private void DelRow(){
 		if(airlineTable.getSelectedRowCount()>0){
 			for(int i : airlineTable.getSelectedRows()){
@@ -320,7 +332,11 @@ public class Airline extends JPanel implements ActionListener{
 		}
 	}
 
-	/** Action Listener */
+	/** 
+	 * Action Listener 
+	 * @param ActionEvent e Get Objects
+	 * @return
+	 * */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();	//Get Selected Object
@@ -374,7 +390,11 @@ public class Airline extends JPanel implements ActionListener{
 		}
 	}	
 	
-	/** Set the Alignment of the Rows to Center */
+	/** 
+	 * Set the Alignment of the Rows to Center 
+	 * @param JTable t Get table
+	 * @return
+	 * */
 	private void tableCellCenter(JTable t){
 		DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
 		//Set the alignment of the renderer to center
@@ -388,7 +408,11 @@ public class Airline extends JPanel implements ActionListener{
 		}
 	}
 	
-	/** Set the Columns' Width & Fix the Columns' Location */
+	/** 
+	 * Set the Columns' Width & Fix the Columns' Location 
+	 * @param JTable t
+	 * @return
+	 * */
 	private void setColumnSize(JTable t){
 		TableColumnModel tcm = t.getColumnModel();
 		
@@ -405,8 +429,16 @@ public class Airline extends JPanel implements ActionListener{
 		}
 	}
 
-	/** Table Mouse Listener (Click, Enter, Exit, Press, Release)*/
+	/** 
+	 * Table Mouse Listener (Click, Enter, Exit, Press, Release)
+	 * implements MouseListener
+	 * */
 	private class JTableMouseListener implements MouseListener{
+		/**
+		 * Mouse Click Event
+		 * @param MouseEvent e Get Object
+		 * @return
+		 */
 		public void mouseClicked(MouseEvent e) {
 			//Action when you right-click the column
 			if(e.getButton()==3){
@@ -419,7 +451,7 @@ public class Airline extends JPanel implements ActionListener{
 					JOptionPane.showMessageDialog(null, "수정할 칼럼을 먼저 마우스 왼쪽 클릭해주세요.",
 							"Message",JOptionPane.ERROR_MESSAGE);
 				}
-				else{
+				else{		//Set the Search Mode & Search
 					int row = airlineTable.getSelectedRow();
 					for(int i=0;i<airlineTable.getColumnCount();i++){
 						if(i==0)	id = (String) model.getValueAt(row, i);

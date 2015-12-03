@@ -36,15 +36,17 @@ import main.Database;
  * - {@link #Airline()} : Constructor  <br>
  * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
  * - {@link #Table_init()} : UI of Table and Search Part  <br>
- * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
+ * - {@link #AddnUpdateRow(int))} : Add a New Row & Update Selected Row <br>
  * - {@link #DelRow()} : Delete Selected Row  <br>
+ * - {@link #itemStateChanged(ItemEvent)} : Radio Button Listener <br>
  * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
  * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
  * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
+ * 
  * <p><b>Another Class</b> <br>
  * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
  * 
- * @version 1.0 12/02/15
+ * @version 1.1 12/03/15
  * @author 심현정, 김상완, 유란영
  * */
 @SuppressWarnings("serial")
@@ -81,9 +83,11 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 	private JLabel lblLength;
 	private JLabel lblSize;
 	private JLabel lblAirline;
-	private JLabel lblCount1;	//좌석 수 카운트용 ("개")
+	// For counting the number of seats ("개")
+	private JLabel lblCount1;	
 	private JLabel lblCount2;
 	private JLabel lblCount3;
+	// Length unit (m)
 	private JLabel lblmeter1;
 	private JLabel lblmeter2;
 	
@@ -136,7 +140,10 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 	//Database Class
 	Database db;
 	
-	/** Airplane Constructor */
+	/** 
+	 * Airplane Constructor 
+	 * @param
+	 * */
 	public Airplane(){
 		setLayout(null);		//Delete Layout Manager
 		setBackground(Color.LIGHT_GRAY);
@@ -151,7 +158,11 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		Table_init();
 	}
 	
-	/** 등록/삭제 버튼 및 등록 부분 UI */
+	/** 
+	 * UI of Enroll/Delete Buttons and Enroll Form 
+	 * @param
+	 * @return
+	 * */
 	private void Enroll_init(){
 		//Font for Labels
 		font = new Font("",Font.BOLD,12);
@@ -294,20 +305,24 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		btnShowAll.setBounds(778, 130, 132, 30);
 		add(btnShowAll);
 		
-		//등록 버튼: 테이블 새로 한 줄 추가
+		//JButton: Enroll
 		btnApAddnUpdate = new JButton("등록");
 		btnApAddnUpdate.addActionListener(this);
 		btnApAddnUpdate.setBounds(778, 170, 62, 30);
 		add(btnApAddnUpdate);
 		
-		//삭제 버튼: 선택된 테이블 한 줄 삭제
+		//JButton: Delete
 		btnApDelete = new JButton("삭제");
 		btnApDelete.addActionListener(this);
 		btnApDelete.setBounds(848, 170, 62, 30);
 		add(btnApDelete);
 	}
 	
-	/** 테이블 및 검색 부분 UI */
+	/** 
+	 * UI of Table and Search Part
+	 * @param
+	 * @return
+	 * */
 	private void Table_init(){
 		//Initialize Column Names
 		apColNames = new Vector<>();
@@ -367,14 +382,18 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		tfSearch.setBounds(380, 580, 200, 30);			
 		add(tfSearch);
 		
-		//검색 버튼
+		//Button: Search
 		btnApSearch = new JButton("검색");
 		btnApSearch.setBounds(600, 580, 62, 30);
 		btnApSearch.addActionListener(this);
 		add(btnApSearch);
 	}
 	
-	/** Add a New Row & Update Selected Row */
+	/** 
+	 * Add a New Row & Update Selected Row 
+	 * @param int flag To distinguish add or update
+	 * @return
+	 * */
 	void AddnUpdateRow(int flag){
 		//Get text and information from TextField and RadioButton
 		String first = tfFirst.getText();
@@ -430,7 +449,11 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		}
 	}
 	
-	/** Delete Selected Row */
+	/** 
+	 * Delete Selected Row
+	 * @param
+	 * @return
+	 *  */
 	void DelRow(){
 		if(airplaneTable.getSelectedRowCount()>0){
 			for(int i : airplaneTable.getSelectedRows()){
@@ -449,7 +472,10 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		}
 	}
 	
-	/** Radio Button Item Listener */
+	/** 
+	 * Radio Button Item Listener 
+	 * @param ItemEvent e Get Objects
+	 * */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getSource();	//Get Selected Object
@@ -477,9 +503,14 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		}
 	}
 	
+	/** 
+	 * Action Listener 
+	 * @param ActionEvent e Get Objects
+	 * @return
+	 * */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		Object source = e.getSource();	//선택된 버튼 가져오기
+		Object source = e.getSource();	//Get Selected Object
 		
 		if(source.equals(btnApAddnUpdate)){
 			//Check if it's add mode(0) or update mode(1)
@@ -525,7 +556,7 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 			if(keyWord.isEmpty())
 				JOptionPane.showMessageDialog(null, "검색어를 입력하세요.",
 						"Message",JOptionPane.ERROR_MESSAGE);
-			else{
+			else{		//Set the Search Mode & Search
 				switch(searchMode){
 					case 0: db.AirplaneSearch(SEARCH_ALL,keyWord); break;
 					case 1: db.AirplaneSearch(SEARCH_ID,keyWord); break;
@@ -550,25 +581,33 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		}
 	}
 	
-	/** 테이블 내용 가운데 정렬 */
+	/** 
+	 * Set the Alignment of the Rows to Center 
+	 * @param JTable t Get table
+	 * @return
+	 * */
 	private void tableCellCenter(JTable t){
 		DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
-		dtcr.setHorizontalAlignment(SwingConstants.CENTER);		//Renderer을 가운데 정렬로
+		//Set the alignment of the renderer to center
+		dtcr.setHorizontalAlignment(SwingConstants.CENTER);
 		
 		TableColumnModel tcm = t.getColumnModel();
 		
-		//전체 열에 가운데 정렬
+		//Set the alignment of all the rows to center
 		for(int i=0;i<tcm.getColumnCount();i++){
 			tcm.getColumn(i).setCellRenderer(dtcr);
-			//모델에서 컬럼 갯수만큼 컬럼 가져와서 for문으로
-			//각각의 셀 Renderer을 아까 생성한 dtcr에 set
 		}
 	}
 	
-	/** 테이블 셀 크기 변경 및 고정 */
+	/** 
+	 * Set the Columns' Width & Fix the Columns' Location 
+	 * @param JTable t
+	 * @return
+	 * */
 	private void setColumnSize(JTable t){
 		TableColumnModel tcm = t.getColumnModel();
 		
+		//Set the columns' width
 		tcm.getColumn(0).setPreferredWidth(20);
 		tcm.getColumn(1).setPreferredWidth(80);
 		tcm.getColumn(2).setPreferredWidth(60);
@@ -577,14 +616,22 @@ public class Airplane extends JPanel implements ActionListener, ItemListener{
 		for(int i=4;i<9;i++)
 			tcm.getColumn(i).setPreferredWidth(40);
 		
-		//전체 열 사이즈 변경 불가
+		//Fix the columns' location
 		for(int i=0;i<tcm.getColumnCount();i++){
 			tcm.getColumn(i).setResizable(false);
 		}
 	}
 
-	/** Table Mouse Listener (Click, Enter, Exit, Press, Release)*/
+	/** 
+	 * Table Mouse Listener (Click, Enter, Exit, Press, Release)
+	 * implements MouseListener
+	 * */
 	private class JTableMouseListener implements MouseListener{
+		/**
+		 * Mouse Click Event
+		 * @param MouseEvent e Get Object
+		 * @return
+		 */
 		public void mouseClicked(MouseEvent e) {
 			//Action when you right-click the column
 			if(e.getButton()==3){

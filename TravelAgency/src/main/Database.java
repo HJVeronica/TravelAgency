@@ -1,5 +1,5 @@
 package main;
-import java.awt.event.ActionEvent;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,25 +10,27 @@ import java.sql.Statement;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import javax.swing.JTable;
-
 /** 
  * <p><b> Database Class </b> 
  * : Connect to TravelAgency Database & Execute Queries</p>
  * 
  * <p><b>Each method is as follows</b> <br>
- * - {@link #Customer()} : Constructor  <br>
- * - {@link #Enroll_init()} : UI of Enroll/Delete Buttons and Enroll Form  <br>
- * - {@link #Table_init()} : UI of Table and Search Part  <br>
- * - {@link #AddnUpdateRow()} : Add a New Row & Update Selected Row <br>
- * - {@link #DelRow()} : Delete Selected Row  <br>
- * - {@link #actionPerformed(ActionEvent)} : Action Listener  <br>
- * - {@link #tableCellCenter(JTable)} : Set the Alignment of the Rows  <br>
- * - {@link #setColumnSize(JTable)} : Set the Columns' Width & Fix the Columns' Location  </p>
- * <p><b>Another Class</b> <br>
- * - {@link JTableMouseListener} : Table Mouse Listener (Click, Enter, Exit, Press, Release) 
+ * - {@link #Database()} : Constructor  <br>
+ * - {@link #AirlineComboNames(int) #CustomerComboNames(int) #FlightComboNames() #CountryComboNames} 
+ * : Get Needed Information to Add ComboBox Items  <br>
+ * - {@link #AirlineSelectName(String) #CustomerSelectName(String)} 
+ * : Show the Tuples That Includes the Selected Airline/Customer Name  <br>
+ * - {@link #SelectTop10()} : Get Top 10 Customer's Name from Reservation Table <br>
+ * - {@link #getID(int)} : Get the Last ID to Insert Rows to DB  <br>
+ * - {@link #GetForeignKeyfromOtherTables(String, String)} : Get Foreign Key from Other Tables  <br>
+ * - {@link #InsertData(int, String[])} : Insert Data into DB  <br>
+ * - {@link #DeleteData(int, String)} : Delete Data from DB  <br>
+ * - {@link #UpdateData(int, String[])} : Update Data in DB  <br>
+ * - {@link #AirlineSearch(int, String) #CustomerSearch(int, String) #AirplaneSearch(int, String)
+ *  #FlightSearch(int, String) #ReservationSearch(int, String)} : Search Data from DB  <br>
+ * </p>
  * 
- * @version 0.9.6 12/02/15
+ * @version 0.9.9 12/03/15
  * @author 심현정, 김상완, 유란영
  * */
 public class Database{
@@ -42,7 +44,10 @@ public class Database{
 	private Vector<String> line;
 	private PreparedStatement ps = null;
 	
-	/** Database Constructor: Connect to DB */
+	/** 
+	 * Database Constructor: Connect to DB 
+	 * @param
+	 * */
 	public Database(){		
 		try {
 			conn = DriverManager.getConnection(URL,USER,PASSWORD);
@@ -52,96 +57,6 @@ public class Database{
 		}
 	}	
 
-	/**
-	 * Initialize the Table of Each Tab
-	 * @param int TabNum Each class id for distinguishing classes
-	 * @return
-	 * */
-	/*public void Table_Initialize(int TabNum){
-		try {
-			switch(TabNum){
-				case 1: 	//Airline Table Initialize
-					AirlineSearch(0, null);
-					break;
-				case 2: 	//Customer Table Initialize
-					sql = "select * from customer";
-					rs = st.executeQuery(sql);
-					String member = null;
-					
-					while(rs.next()){
-						line = new Vector<String>();
-						line.add(rs.getString("cId"));
-						line.add(rs.getString("name"));
-						line.add(rs.getString("phone"));
-						line.add(rs.getString("address"));
-						if(rs.getString("membership").equals("0"))
-							member = "미보유";
-						else member = "보유";
-						line.add(member);
-						line.add(rs.getString("payment_preference"));
-						line.add(rs.getString("seat"));
-						
-						swing.Customer.model.addRow(line);
-					}					
-					break;
-				case 3: 	//Airplane Table Initialize
-					sql = "select * from airplane";
-					rs = st.executeQuery(sql);
-					
-					try {
-						while(rs.next()){
-							line = new Vector<String>();
-		
-							line.add(rs.getString("pId"));
-							line.add(rs.getString("aId"));
-							line.add(rs.getString("aircraft"));
-							line.add(rs.getString("type"));
-							line.add(rs.getString("firstclass")+"개");
-							line.add(rs.getString("business")+"개");
-							line.add(rs.getString("economy")+"개");
-							line.add(rs.getString("length")+"m");
-							line.add(rs.getString("plane_size"));
-							
-							swing.Airplane.model.addRow(line);
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					
-					sql = "select name "
-							+ "from airline, airplane"
-							+ "where airline.aId=airplane.aId";
-					break;
-				case 4: 	//Flight Table Initialize
-					break;
-				case 5: 	//Reservation Table Initialize
-					sql = "select * from reservation";
-					rs = st.executeQuery(sql);
-					
-					try {
-						while(rs.next()){
-							line = new Vector<String>();
-		
-							line.add(rs.getString("cId"));
-							line.add(rs.getString("flight_name"));
-							line.add(rs.getString("book_date"));
-							line.add(rs.getString("staff"));
-							line.add(rs.getString("payment"));
-							line.add(rs.getString("state"));
-							line.add(rs.getString("route"));
-							
-							swing.Reservation.model.addRow(line);
-						}
-					} catch (SQLException e) {
-						e.printStackTrace();
-					}
-					break;
-			}
-		} catch (SQLException e) {
-			System.out.println("Connection Error: "+e.getStackTrace());
-		}
-	}*/
-	
 	/** 
 	 * Get Airline Names to Add ComboBox Items 
 	 * @param int TabNum Each class id for distinguishing classes
@@ -166,6 +81,11 @@ public class Database{
 		return comboNames;
 	}
 
+	/** 
+	 * Get Customer Names to Add ComboBox Items 
+	 * @param int flag Each class id for distinguishing classes
+	 * @return Return string vector which contains customer names 
+	 * */
 	public Vector<String> CustomerComboNames(int flag){
 		Vector<String> comboNames = new Vector<String>();
 		sql = "select name from customer;";
@@ -185,6 +105,11 @@ public class Database{
 		return comboNames;
 	}
 	
+	/** 
+	 * Get Flight Names to Add ComboBox Items 
+	 * @param
+	 * @return Return string vector which contains flight names 
+	 * */
 	public Vector<String> FlightComboNames(){
 		Vector<String> comboNames = new Vector<String>();
 		sql = "select flight_name from flight;";
@@ -201,6 +126,11 @@ public class Database{
 		return comboNames;
 	}
 	
+	/** 
+	 * Get Country Names to Add ComboBox Items 
+	 * @param 
+	 * @return Return string vector which contains country names 
+	 * */
 	public Vector<String> CountryComboNames(){
 		Vector<String> comboNames = new Vector<String>();
 		sql = "select name from airport;";
@@ -220,27 +150,40 @@ public class Database{
 	/** 
 	 * Show the Tuples That Includes the Selected Airline Name 
 	 * @param String name Selected item
-	 * @param int TabNum Each class id for distinguishing classes
 	 * @return 
 	 * */
 	public void AirlineSelectName(String name){
 		if(name.equals("전체")){
+			//Show all
 			AirlineSearch(0, null);
 		}
 		else{
+			//Search by name
 			AirlineSearch(3,name);
 		}
 	}
 	
+	/** 
+	 * Show the Tuples That Includes the Selected Customer Name 
+	 * @param String name Selected item
+	 * @return 
+	 * */
 	public void CustomerSelectName(String name){
 		if(name.equals("전체")){
+			//Show all
 			CustomerSearch(0, null);
 		}
 		else{
+			//Search by name
 			CustomerSearch(3, name);
 		}
 	}
 	
+	/**
+	 * Get Top 10 Customer's Name from Reservation Table
+	 * @param
+	 * @return Return string vector which contains top 10 customers' names 
+	 * */
 	public Vector<String> SelectTop10(){
 		Vector<String> str = new Vector<String>();
 		
@@ -350,6 +293,12 @@ public class Database{
 		return id;
 	}
 	
+	/**
+	 * Get Foreign Key from Other Tables
+	 * @param String fk To distinguish the data that you want to get
+	 * @param String keyword Search keyword
+	 * @return Return string which contains the data of foreign key
+	 */
 	public String GetForeignKeyfromOtherTables(String fk, String keyword){
 		try {
 			if(fk.equals("aid")){		//Get id from airline table
@@ -418,9 +367,6 @@ public class Database{
 						else ps.setDouble(i+1, Double.parseDouble(rows[i]));
 					}
 					ps.executeUpdate();
-					//ps.close();
-					break;
-				case 4: 	//Flight Class
 					break;
 				case 5: 	//Reservation Class
 					break;
@@ -457,14 +403,26 @@ public class Database{
 					ps.setString(1, id);
 					ps.executeUpdate();	
 					break;
-				case 4: break;
-				case 5: break;
+				case 5:		//Reservation Class 
+					sql = "delete from reservation where cId=? and flight_name=?";					
+					ps = conn.prepareStatement(sql);
+					ps.setString(1, id);
+					//id에 flight_name까지 붙여 보내서 파싱하기 (구분자:,)
+					ps.setString(2, id);
+					ps.executeUpdate();
+					break;
 			}
 		} catch (SQLException e) {
 			System.out.println("Connection Error: "+e.getStackTrace());
 		}
 	}
 	
+	/** 
+	 * Update Data in DB 
+	 * @param int TabNum Each class id for distinguishing classes
+	 * @param String rows Get updated data of the row that you changed
+	 * @return
+	 * */
 	public void UpdateData(int TabNum, String[] rows){
 		try {
 			switch(TabNum){
@@ -506,8 +464,6 @@ public class Database{
 					}
 					ps.setString(rows.length+1, rows[0]);
 					ps.executeUpdate();	
-					break;
-				case 4: 	//Flight Class
 					break;
 				case 5: 	//Reservation Class
 					break;
@@ -786,8 +742,7 @@ public class Database{
 							+ "select code,name from airport;";
 					st.executeUpdate(sql);
 					
-					//Create a view to get aircraft by pid
-					
+					//Create a view to get aircraft by pid					
 					sql = "create or replace view flightview as select ft.flight_name, ap.aircraft, "
 						+ "dc.name as departure, ac.name as arrival, "
 						+ "ft.dep_date, ft.dep_time, ft.arr_date, ft.arr_time, ft.`schedule`, ft.price "
@@ -822,7 +777,7 @@ public class Database{
 			Object[] tempObj = new Object[rsMetaData.getColumnCount()];
 			
 			//Reset DefaultTableModel
-			swing.Airline.model.setRowCount(0);
+			swing.Flight.model.setRowCount(0);
 			
 			while(rs.next()){
 				for(int i=0 ; i<rsMetaData.getColumnCount(); i++){

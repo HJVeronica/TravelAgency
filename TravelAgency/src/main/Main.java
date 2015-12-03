@@ -1,24 +1,21 @@
 package main;
-import java.sql.SQLException;
-import java.util.Scanner;
 
 import swing.Swing;
 
 /** 
- * Function: 
+ * <p><b> Main Class </b> 
+ * : Declare Swing Object </p>
  * 
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #main(String[])} : Main Method (Declare Swing Instance and Initialize)  <br></p>
  * 
- * @version 1.01 11/29/15
- * @author Hyunjeong Shim, 김상완, 유란영
- */
+ * @version 1.0 12/03/15
+ * @author 심현정, 김상완, 유란영
+ * */
 
-public class Main {
-	private static Scanner in = new Scanner(System.in);
-	private static String sql="";
-	
-	public static void main(String[] args) throws SQLException {
-		Swing sw = new Swing();
-		
+public class Main {	
+	public static void main(String[] args) {
+		@SuppressWarnings("unused")
+		Swing sw = new Swing();	
 	}
-
 }

@@ -1,44 +1,19 @@
 package swing;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionAdapter;
-import java.sql.SQLException;
-import java.util.Vector;
 
-import javax.swing.ButtonGroup;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
 
 /** 
- * Create UI Using Swing
+ * <p><b> Swing Class </b> 
+ * : Create UI Using Swing</p>
  * 
+ * <p><b>Each method is as follows</b> <br>
+ * - {@link #Swing()} : Constructor  <br></p>
  * 
- * @version 1.03 11/29/15
- * @author Hyunjeong Shim, 김상완, 유란영
- */
-
+ * @version 1.0 11/29/15
+ * @author 심현정, 김상완, 유란영
+ * */
+@SuppressWarnings("serial")
 public class Swing extends JFrame{
 	public Airline airline = null;
 	public Customer customer = null;
@@ -50,9 +25,8 @@ public class Swing extends JFrame{
 	 * Constructor of Swing Class
 	 * Set the Size of JFrame
 	 * Manage the Tabs 
-	 * @throws SQLException 
 	 * */
-	public Swing() throws SQLException{
+	public Swing(){
 		setTitle("Travel Agency Management Program");
 		setSize(1000,700);
 		setLocation(200,50);
